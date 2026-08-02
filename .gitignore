@@ -1,0 +1,19 @@
+# Backend (Python)
+be/__pycache__/
+be/**/__pycache__/
+be/.venv/
+be/*.egg-info/
+be/.pytest_cache/
+be/.ruff_cache/
+be/.env
+
+# Frontend (Node)
+fe/node_modules/
+fe/dist/
+fe/.env
+
+# General
+.DS_Store
+*.log
+.vscode/*
+!.vscode/settings.json
