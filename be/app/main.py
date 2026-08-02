@@ -22,3 +22,6 @@ app.include_router(vehicles.router)
 def health_check() -> dict[str, str]:
     """Endpoint de verificación de salud del servicio (útil para Docker healthchecks futuros)."""
     return {"status": "ok"}
+
+
+import os
