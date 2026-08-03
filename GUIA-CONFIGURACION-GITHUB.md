@@ -33,20 +33,31 @@ git push origin feature/vehicle-domain-model   # opcional, solo si quieres verla
 - ✅ Require status checks to pass before merging (lo activas después de que corra el primer
   workflow — paso 6, ya que GitHub necesita ver el check al menos una vez para poder listarlo)
 
-## 4. Crear el GitHub Project (Board)
+## 4. Crear el GitHub Project en vista Kanban
 
-1. En el repositorio → pestaña **Projects** → **New project** → plantilla **Board**
-2. Crea las columnas: `Backlog`, `Sprint Actual`, `En Progreso`, `En Revisión (PR)`, `Hecho`
+1. En el repositorio → pestaña **Projects** → **New project**
+2. En el selector de plantilla, elige **"Kanban"** (GitHub la ofrece explícitamente con ese
+   nombre — hay dos variantes: **"Basic Kanban"**, con columnas manuales, y **"Automated
+   Kanban"**, que mueve las tarjetas solas según el estado del Issue/PR). Se recomienda
+   **Automated Kanban**: cuando abras el PR de una historia, su tarjeta se mueve sola a "In
+   Progress", y al mergearlo se mueve sola a "Done" — reduce el mantenimiento manual del tablero.
+3. Renombra las columnas para que coincidan con el flujo del bootcamp:
+   `Backlog` → `Sprint Actual` → `En Progreso` → `En Revisión (PR)` → `Hecho`
+4. Confirma que la vista por defecto del proyecto quede como **Board** (vista Kanban), no como
+   Table — se puede alternar desde la pestaña de vistas dentro del Project.
 
 ## 5. Cargar el backlog como Issues
 
-Usa `docs-proyecto/backlog-historias-usuario.md`: por cada historia (HU-01 a HU-12), crea un
-Issue nuevo copiando título, historia, criterios de aceptación y notas técnicas. Asigna:
+Usa `docs/requisitos/HUs/` (12 archivos, HU-001 a HU-012): por cada historia, crea un Issue
+nuevo copiando el título, la sección "Historia" y los "Criterios de aceptación". Asigna:
 
-- **Label**: `feature` (ya sugerido en cada bloque)
+- **Label**: `feature`
 - **Milestone**: crea un milestone por sprint (`Sprint 1 — Dominio y persistencia`, ...
-  `Sprint 8 — Cierre y avance 90%`) según lo indicado en cada historia
+  `Sprint 8 — Cierre y avance 90%`) según el campo "Estado" de cada HU
 - Agrega el issue al Project, columna `Backlog`
+
+> El RF asociado de cada HU (tabla de identificación) queda como referencia técnica en la
+> descripción del Issue o como comentario — así el Issue queda trazable a `docs/requisitos/RFs/`.
 
 > Con los 12 issues cargados ya superas el mínimo de 5 historias reales priorizadas que pide la
 > rúbrica de Desempeño.

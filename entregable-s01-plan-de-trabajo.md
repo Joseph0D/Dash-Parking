@@ -37,6 +37,9 @@
 
 ## 3. Backlog Priorizado
 
+> Detalle completo de cada historia (criterios de aceptación Dado/cuando/entonces) y su
+> requisito funcional asociado en [`docs/requisitos/`](docs/requisitos/README.md).
+
 | # | Historia de Usuario | Core / Secundaria | Depende de |
 |---|---|:---:|---|
 | 1 | Como operario, quiero registrar el ingreso de un vehículo (placa, tipo, fecha/hora automática) para dejar constancia digital del ingreso (RF01–RF04) | Core | — |
@@ -52,7 +55,9 @@
 | 11 | Como administrador, quiero actualizar o eliminar registros según permisos para corregir errores de digitación sin perder trazabilidad (RF17, RF18) | Secundaria | #1, #4 |
 | 12 | Como usuario del sistema, quiero autenticarme con un rol (administrador/operario) para que el sistema controle permisos de acceso (RNF de seguridad) | Core | — |
 
-<!-- Backlog completo cargado como Issues en GitHub Projects — ver docs-proyecto/backlog-historias-usuario.md -->
+<!-- Backlog completo, detallado como Historias de Usuario (Dado/cuando/entonces) trazables a
+     Requisitos Funcionales, en docs/requisitos/ — cada fila de esta tabla es una carpeta HU/RF.
+     Cargado como Issues en el GitHub Project (vista Kanban) — ver GUIA-CONFIGURACION-GITHUB.md -->
 
 ## 4. Progresión de Sprints Propuesta
 

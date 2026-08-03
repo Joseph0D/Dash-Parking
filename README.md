@@ -30,7 +30,8 @@ Ver detalle y justificación en [`CODING_STANDARDS.md`](CODING_STANDARDS.md).
 dash-parking/
 ├── be/                     # Backend FastAPI
 ├── fe/                     # Frontend React + TypeScript
-├── docs-proyecto/          # Backlog e historias de usuario
+├── docs/
+│   └── requisitos/         # HUs, RFs, RNFs y restricciones (trazables al informe de diseño)
 ├── entregable-s01-plan-de-trabajo.md
 ├── CODING_STANDARDS.md
 └── GUIA-CONFIGURACION-GITHUB.md
@@ -80,14 +81,13 @@ npm test
 npm run build
 ```
 
-## Backlog y GitHub Projects
+## Requisitos, backlog y GitHub Projects
 
-El backlog priorizado vive en [`entregable-s01-plan-de-trabajo.md`](entregable-s01-plan-de-trabajo.md)
-(Sección 3) y en detalle, listo para copiar como Issues, en
-[`docs-proyecto/backlog-historias-usuario.md`](docs-proyecto/backlog-historias-usuario.md).
-
-Pasos de configuración de GitHub (repo, Project, branch protection, CI) en
-[`GUIA-CONFIGURACION-GITHUB.md`](GUIA-CONFIGURACION-GITHUB.md).
+- Backlog resumido: [`entregable-s01-plan-de-trabajo.md`](entregable-s01-plan-de-trabajo.md) (Sección 3)
+- Requisitos completos y trazables (HUs, RFs, RNFs, restricciones): [`docs/requisitos/`](docs/requisitos/README.md)
+- El backlog se gestiona en GitHub Projects con vista **Kanban** — cada HU de `docs/requisitos/HUs/`
+  es un Issue del tablero. Pasos de configuración (repo, Project Kanban, branch protection, CI)
+  en [`GUIA-CONFIGURACION-GITHUB.md`](GUIA-CONFIGURACION-GITHUB.md).
 
 ## Flujo de trabajo
 
