@@ -92,7 +92,8 @@ dash-parking/
 │       ├── components/    # UI reutilizable (formularios de ingreso/salida, tablero de ocupación)
 │       ├── pages/         # Una página por ruta
 │       └── hooks/         # Lógica reutilizable de estado/efectos
-├── docs-proyecto/         # Documentación técnica del proyecto (backlog, decisiones)
+├── docs/
+│   └── requisitos/        # HUs, RFs, RNFs y restricciones (trazables al informe de diseño)
 └── docker-compose.yml     # Se agrega a partir del Sprint 1 (servicio db) — ver docs/docker-guia.md
 ```
 
