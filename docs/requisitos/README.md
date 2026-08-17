@@ -26,11 +26,21 @@ sustenta técnicamente. Ambos son trazables al informe de diseño original (ver
 | [HU-009](HUs/HU-009_reportes_administrativos.md) | Generación de reportes administrativos | RF-009 | Planificado |
 | [HU-010](HUs/HU-010_administrar_clientes.md) | Administración de clientes | RF-010 | Planificado |
 | [HU-011](HUs/HU-011_editar_y_eliminar_registros.md) | Actualización/eliminación de registros | RF-011 | Planificado |
-| [HU-012](HUs/HU-012_autenticacion_por_rol.md) | Autenticación por rol | RF-012 | Planificado |
+| [HU-012](HUs/HU-012_autenticacion_por_rol.md) | Autenticación por rol (staff) | RF-012 | Planificado |
+| [HU-013](HUs/HU-013_reservar_espacio.md) | Reservar un espacio de parqueo | RF-013 | Implementado |
+| [HU-014](HUs/HU-014_pago_virtual.md) | Pago virtual del servicio | RF-014 | Implementado |
+| [HU-015](HUs/HU-015_pago_qr.md) | Pago con código QR | RF-015 | Implementado |
+| [HU-016](HUs/HU-016_registro_de_cuenta_cliente.md) | Registro de cuenta de cliente | RF-016 | Implementado |
+| [HU-017](HUs/HU-017_dashboard_admin_filtrable.md) | Dashboard administrativo filtrable | RF-017 | Implementado |
+
+> HU-013 a HU-017 fueron solicitadas explícitamente por el cliente al pedir la versión funcional
+> de la web (reservas, pagos virtual/QR, autoregistro, dashboard filtrable) — no estaban en el
+> informe de diseño original del parqueadero, se documentan aquí para mantener trazabilidad.
 
 ## Requisitos Funcionales ([`RFs/`](RFs/))
 
 RF-001 a RF-012 — ver tabla anterior para el mapeo directo con cada HU.
+RF-013 a RF-017 — funcionalidades explícitas del cliente para la versión funcional (reservas, pagos, dashboard).
 
 ## Requisitos No Funcionales ([`RNFs/`](RNFs/))
 
