@@ -16,7 +16,7 @@
 | **Título**       | Asignación automática de espacio |
 | **Módulo**       | Ingreso                         |
 | **Prioridad**    | Alta (Core)                     |
-| **Estado**       | En progreso (Sprint 0: regla de negocio implementada en memoria) |
+| **Estado**       | Implementado |
 | **RF asociados** | RF-002                          |
 
 ---

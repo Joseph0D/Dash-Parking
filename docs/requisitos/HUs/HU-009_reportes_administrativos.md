@@ -16,7 +16,7 @@
 | **Título**       | Generación de reportes administrativos     |
 | **Módulo**       | Administrativo                             |
 | **Prioridad**    | Media (Secundaria)                         |
-| **Estado**       | Planificado (Sprint 8 — Cierre)            |
+| **Estado**       | Implementado (vía dashboard filtrable RF-017) |
 | **RF asociados** | RF-009                                     |
 
 ---

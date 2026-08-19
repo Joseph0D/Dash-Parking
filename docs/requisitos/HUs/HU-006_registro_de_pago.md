@@ -16,7 +16,7 @@
 | **Título**       | Registro del pago del servicio    |
 | **Módulo**       | Salida                            |
 | **Prioridad**    | Alta (Core)                       |
-| **Estado**       | Planificado (Sprint 4 — Reglas de negocio) |
+| **Estado**       | Implementado |
 | **RF asociados** | RF-006                            |
 
 ---

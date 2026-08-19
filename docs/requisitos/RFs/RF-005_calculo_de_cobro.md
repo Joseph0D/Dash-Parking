@@ -16,7 +16,7 @@
 | **Nombre**    | Cálculo de tiempo de permanencia y valor a pagar      |
 | **Módulo**    | Salida                                                |
 | **Prioridad** | Alta                                                   |
-| **Estado**    | Planificado (Sprint 4)                                 |
+| **Estado**    | Implementado |
 | **Informe original** | RF08, RF09                                      |
 
 ---

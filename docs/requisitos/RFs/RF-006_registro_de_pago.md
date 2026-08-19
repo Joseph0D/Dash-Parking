@@ -16,7 +16,7 @@
 | **Nombre**    | Registro del pago del servicio   |
 | **Módulo**    | Salida                           |
 | **Prioridad** | Alta                              |
-| **Estado**    | Planificado (Sprint 4)            |
+| **Estado**    | Implementado |
 | **Informe original** | RF11                        |
 
 ---

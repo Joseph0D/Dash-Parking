@@ -117,3 +117,10 @@ Actualiza en `entregable-s01-plan-de-trabajo.md`:
 
 Con esto los 7 ítems del bloque "Alistamiento" + los 2 del bloque "Arranque" del checklist de la
 Semana 1 quedan cerrados.
+
+---
+
+Una vez el repositorio está en GitHub, el resto del equipo puede sumarse siguiendo
+[`GUIA-COLABORACION-EQUIPO.md`](GUIA-COLABORACION-EQUIPO.md) (instalación de herramientas, clonar,
+flujo de ramas y PRs). Para levantar el proyecto localmente y probarlo de punta a punta, ver
+[`GUIA-EJECUCION-LOCAL.md`](GUIA-EJECUCION-LOCAL.md).

@@ -16,7 +16,7 @@
 | **Nombre**    | Administración de tarifas       |
 | **Módulo**    | Tarifas                         |
 | **Prioridad** | Alta                             |
-| **Estado**    | Planificado (Sprint 1)           |
+| **Estado**    | Implementado |
 | **Informe original** | RF15                       |
 
 ---

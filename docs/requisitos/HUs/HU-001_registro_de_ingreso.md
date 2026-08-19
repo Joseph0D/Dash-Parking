@@ -16,7 +16,7 @@
 | **Título**       | Registro de ingreso de vehículo |
 | **Módulo**       | Ingreso                    |
 | **Prioridad**    | Alta (Core)                |
-| **Estado**       | En progreso (Sprint 0: dominio + endpoint mínimo, sin persistencia real) |
+| **Estado**       | Implementado |
 | **RF asociados** | RF-001                     |
 
 ---
