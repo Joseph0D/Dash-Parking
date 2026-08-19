@@ -1,74 +1,40 @@
 """
-Módulo: vehicle.py
-Qué: Entidades de dominio del proceso de ingreso/salida de vehículos.
-Para qué: Modelan las reglas del parqueadero (Necesidad 1 y 2 del informe de diseño) sin
-          depender todavía de un motor de persistencia — eso se agrega en el Sprint 1
-          (Semana 2 — Dominio y Persistencia), según docs/estandar-codigo-template.md.
-Impacto: Si el modelo aquí es incorrecto, toda la lógica de negocio construida encima
-         (cálculo de cobro, ocupación, reportes) hereda el error.
+Módulo: vehicle.py (modelo)
+Qué: Modelo ORM del vehículo registrado por un cliente.
+Para qué: Sustento de RF-001 (ingreso) y RF-010/HU-010 (asociación cliente-vehículo).
+Impacto: Si falla la normalización de placa, se rompe la regla RN-001 de unicidad por placa.
+
+Nota de migración: en el Sprint 0 este archivo contenía una entidad de dominio en memoria
+(dataclass, sin persistencia). Este entregable la reemplaza por el modelo ORM real sobre
+PostgreSQL, cumpliendo RNF-004.3 (almacenamiento permanente).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
+import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy import DateTime, Enum, ForeignKey, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
+from app.models.enums import VehicleType
 
 
-class VehicleType(str, Enum):
-    """Tipos de vehículo soportados por el parqueadero (RF04)."""
-
-    CAR = "car"
-    MOTORCYCLE = "motorcycle"
-    TRUCK = "truck"
+def normalize_plate(plate: str) -> str:
+    """Normaliza una placa: mayúsculas, sin espacios (RN-001)."""
+    return plate.strip().upper().replace(" ", "")
 
 
-@dataclass
-class Vehicle:
-    """Vehículo registrado en un ingreso (RF01-RF04)."""
+class Vehicle(Base):
+    __tablename__ = "vehicles"
+    __table_args__ = (UniqueConstraint("plate", name="uq_vehicles_plate"),)
 
-    plate: str
-    vehicle_type: VehicleType
-    entry_time: datetime
-    exit_time: datetime | None = None
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    plate: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    vehicle_type: Mapped[VehicleType] = mapped_column(Enum(VehicleType, name="vehicle_type"), nullable=False)
+    model: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    def __post_init__(self) -> None:
-        # La placa es el identificador de negocio: se normaliza para evitar duplicados
-        # por diferencias de mayúsculas/espacios (ej. "abc123" vs "ABC 123").
-        self.plate = self.plate.strip().upper().replace(" ", "")
-        if not self.plate:
-            raise ValueError("La placa del vehículo no puede estar vacía")
-
-    @property
-    def is_inside(self) -> bool:
-        """True si el vehículo aún no tiene registrada una salida."""
-        return self.exit_time is None
-
-    def register_exit(self, exit_time: datetime) -> None:
-        """Registra la hora de salida del vehículo (RF07)."""
-        if not self.is_inside:
-            raise ValueError(f"El vehículo {self.plate} ya tiene una salida registrada")
-        if exit_time < self.entry_time:
-            raise ValueError("La hora de salida no puede ser anterior a la hora de ingreso")
-        self.exit_time = exit_time
-
-
-@dataclass
-class ParkingSpot:
-    """Espacio físico del parqueadero (Necesidad 2: control de disponibilidad)."""
-
-    spot_number: str
-    occupied_by: str | None = field(default=None)  # placa del vehículo que lo ocupa
-
-    @property
-    def is_available(self) -> bool:
-        return self.occupied_by is None
-
-    def assign(self, plate: str) -> None:
-        """Asigna el espacio a un vehículo. Falla si ya está ocupado (RF05)."""
-        if not self.is_available:
-            raise ValueError(f"El espacio {self.spot_number} ya está ocupado")
-        self.occupied_by = plate
-
-    def release(self) -> None:
-        """Libera el espacio cuando el vehículo sale (RF10)."""
-        self.occupied_by = None
+    owner: Mapped["User"] = relationship(back_populates="vehicles")  # noqa: F821
