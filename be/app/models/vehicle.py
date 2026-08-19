@@ -14,11 +14,11 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 from app.models.enums import VehicleType
+from app.models.guid import GUID
 
 
 def normalize_plate(plate: str) -> str:
@@ -30,11 +30,11 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
     __table_args__ = (UniqueConstraint("plate", name="uq_vehicles_plate"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     plate: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
     vehicle_type: Mapped[VehicleType] = mapped_column(Enum(VehicleType, name="vehicle_type"), nullable=False)
     model: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    owner_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     owner: Mapped["User"] = relationship(back_populates="vehicles")  # noqa: F821

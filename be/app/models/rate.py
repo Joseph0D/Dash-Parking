@@ -9,17 +9,17 @@ from __future__ import annotations
 import uuid
 
 from sqlalchemy import Enum, Numeric
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
 from app.models.enums import VehicleType
+from app.models.guid import GUID
 
 
 class Rate(Base):
     __tablename__ = "rates"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     vehicle_type: Mapped[VehicleType] = mapped_column(
         Enum(VehicleType, name="vehicle_type"), unique=True, nullable=False
     )

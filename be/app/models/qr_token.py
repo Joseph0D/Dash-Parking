@@ -10,18 +10,18 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.models.guid import GUID
 
 
 class QRToken(Base):
     __tablename__ = "qr_tokens"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     session_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("parking_sessions.id"), nullable=False
+        GUID(), ForeignKey("parking_sessions.id"), nullable=False
     )
     token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
