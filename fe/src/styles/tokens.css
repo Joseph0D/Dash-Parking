@@ -1,0 +1,58 @@
+/*
+  tokens.css — Sistema de diseño de Dash Parking
+  Qué: variables CSS extraídas 1:1 de la interfaz base entregada por el cliente
+       (proyecto-dash-parking: index.css, css/usuario.css, css/admin.css, css/apartados.css).
+  Para qué: mantener la identidad visual ya aprobada (navy + celeste + semáforo de estados)
+       como fuente única de verdad, en vez de repetir hex codes por componente.
+  No se reinterpreta la paleta — se preserva tal cual el cliente la definió.
+*/
+
+:root {
+  /* Superficie y texto */
+  --color-bg: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8fafc;
+  --color-surface-muted: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --color-text: #1e293b;
+  --color-text-strong: #0f172a;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+
+  /* Marca: navy oscuro + celeste acento */
+  --color-navy-900: #0f172a;
+  --color-navy-800: #1e293b;
+  --color-navy-700: #334155;
+  --color-accent: #38bdf8;
+  --color-accent-strong: #0284c7;
+  --color-accent-stronger: #0369a1;
+  --color-accent-soft: #e0f2fe;
+
+  /* Semáforo de estado de espacios (RF-002/RF-003) */
+  --color-success: #16a34a;
+  --color-success-strong: #059669;
+  --color-success-soft: #f0fdf4;
+  --color-success-border: #bbf7d0;
+
+  --color-danger: #dc2626;
+  --color-danger-strong: #be123c;
+  --color-danger-soft: #fef2f2;
+  --color-danger-border: #fecaca;
+
+  --color-warning: #d97706;
+  --color-warning-strong: #eab308;
+  --color-warning-soft: #fffbeb;
+  --color-warning-border: #fef3c7;
+
+  /* Tipografía */
+  --font-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* Espaciado y forma */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-pill: 20px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
