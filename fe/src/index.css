@@ -1,0 +1,62 @@
+/*
+  index.css — reset y estilos base globales de Dash Parking.
+  El reset (*, body) viene 1:1 del index.css del mockup entregado por el cliente.
+*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-base);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+button {
+  font-family: inherit;
+}
+
+.page-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-muted);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.form-field {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.form-field input,
+.form-field select {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+}
