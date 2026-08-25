@@ -48,7 +48,7 @@ def my_vehicles(current_user: User = Depends(get_current_user), db: Session = De
     return [VehicleResponse.model_validate(v) for v in vehicles]
 
 
-@router.delete("/{vehicle_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{vehicle_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_vehicle(
     vehicle_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
