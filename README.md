@@ -11,12 +11,7 @@ Proyecto real del bootcamp de Asesoría Desarrollo — Codificación.
 ✅ **Versión funcional de punta a punta** — backend real sobre PostgreSQL, frontend React
 conectado, y los 17 requisitos funcionales documentados en `docs/requisitos/` implementados
 (RF-001 a RF-017: desde el ingreso de un vehículo hasta reservas, pagos virtual/QR y el
-dashboard filtrable). Ver [`entregable-s01-plan-de-trabajo.md`](entregable-s01-plan-de-trabajo.md)
-para el backlog y la progresión de sprints originalmente planeada.
-
-**La forma más rápida de probarlo** es con Docker — ver
-[`GUIA-EJECUCION-LOCAL.md`](GUIA-EJECUCION-LOCAL.md).
-
+dashboard filtrable).
 ## Funcionalidades
 
 **Cliente**
@@ -70,11 +65,7 @@ dash-parking/
 ├── docs/
 │   └── requisitos/               # HUs, RFs, RNFs y restricciones (trazables al informe de diseño)
 ├── docker-compose.yml
-├── entregable-s01-plan-de-trabajo.md
 ├── CODING_STANDARDS.md
-├── GUIA-EJECUCION-LOCAL.md
-├── GUIA-COLABORACION-EQUIPO.md
-└── GUIA-CONFIGURACION-GITHUB.md
 ```
 
 ## Cómo correr el proyecto
@@ -86,9 +77,6 @@ cp be/.env.example be/.env
 cp fe/.env.example fe/.env
 docker compose up --build
 ```
-
-Ver [`GUIA-EJECUCION-LOCAL.md`](GUIA-EJECUCION-LOCAL.md) para el paso a paso completo, el usuario
-administrador de prueba, y un flujo de prueba sugerido de punta a punta.
 
 **Sin Docker** (backend):
 
@@ -126,24 +114,3 @@ npm test
 npm run build
 ```
 
-## Si eres nuevo en el equipo
-
-Empieza por [`GUIA-COLABORACION-EQUIPO.md`](GUIA-COLABORACION-EQUIPO.md) — instalación de
-herramientas desde cero, cómo clonar, y el flujo de trabajo diario (ramas, commits, Pull
-Requests).
-
-## Requisitos, backlog y GitHub Projects
-
-- Backlog resumido: [`entregable-s01-plan-de-trabajo.md`](entregable-s01-plan-de-trabajo.md) (Sección 3)
-- Requisitos completos y trazables (17 HUs, 17 RFs, 6 RNFs, restricciones):
-  [`docs/requisitos/`](docs/requisitos/README.md)
-- El backlog se gestiona en GitHub Projects con vista **Kanban** — cada HU de
-  `docs/requisitos/HUs/` es un Issue del tablero. Pasos de configuración (repo, Project Kanban,
-  branch protection, CI) en [`GUIA-CONFIGURACION-GITHUB.md`](GUIA-CONFIGURACION-GITHUB.md).
-
-## Flujo de trabajo
-
-`feature/<slug> → develop → main`, con Conventional Commits. Ver
-[`GUIA-COLABORACION-EQUIPO.md`](GUIA-COLABORACION-EQUIPO.md) para el paso a paso del día a día, y
-[`GUIA-CONFIGURACION-GITHUB.md`](GUIA-CONFIGURACION-GITHUB.md) para la configuración de branch
-protection y CI.
