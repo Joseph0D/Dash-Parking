@@ -74,6 +74,12 @@
 
 ## 5. Sprint 0 — Qué se codificó esta semana
 
+> **Actualización posterior**: a solicitud del cliente, el desarrollo avanzó más allá de este
+> Sprint 0 hacia una versión funcional completa (backend real sobre PostgreSQL + frontend React
+> conectado, RF-001 a RF-017). Esta sección se conserva como registro histórico de cómo arrancó
+> el proyecto; el estado real de cada requisito está en
+> [`docs/requisitos/README.md`](docs/requisitos/README.md).
+
 - **Rama feature usada**: `feature/vehicle-domain-model`
 - **Qué se construyó**: entidades de dominio `Vehicle` y `ParkingSpot` (sin persistencia aún —
   eso es Sprint 1), servicio `ParkingService.register_entry()` que aplica la regla de negocio

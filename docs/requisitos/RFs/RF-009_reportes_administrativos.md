@@ -16,7 +16,7 @@
 | **Nombre**    | Generación de reportes administrativos     |
 | **Módulo**    | Administrativo                             |
 | **Prioridad** | Media                                       |
-| **Estado**    | Planificado (Sprint 8)                       |
+| **Estado**    | Implementado (vía RF-017) |
 | **Informe original** | RF14                                   |
 
 ---

@@ -16,7 +16,7 @@
 | **Nombre**    | Consulta de ocupación en tiempo real        |
 | **Módulo**    | Administrativo                              |
 | **Prioridad** | Alta                                        |
-| **Estado**    | Planificado (Sprint 3)                      |
+| **Estado**    | Implementado |
 | **Informe original** | RF06, RF20                           |
 
 ---

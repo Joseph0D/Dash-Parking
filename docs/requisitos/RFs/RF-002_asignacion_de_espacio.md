@@ -16,7 +16,7 @@
 | **Nombre**    | Asignación automática de espacio       |
 | **Módulo**    | Ingreso                                |
 | **Prioridad** | Alta                                   |
-| **Estado**    | En progreso (Sprint 0)                 |
+| **Estado**    | Implementado |
 | **Informe original** | RF05                            |
 
 ---

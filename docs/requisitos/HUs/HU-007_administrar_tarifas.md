@@ -16,7 +16,7 @@
 | **Título**       | Administración de tarifas        |
 | **Módulo**       | Tarifas                          |
 | **Prioridad**    | Alta (Core)                      |
-| **Estado**       | Planificado (Sprint 1 — Dominio y persistencia) |
+| **Estado**       | Implementado |
 | **RF asociados** | RF-007                           |
 
 ---

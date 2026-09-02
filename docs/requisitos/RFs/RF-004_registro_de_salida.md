@@ -16,7 +16,7 @@
 | **Nombre**    | Registro de salida y liberación de espacio    |
 | **Módulo**    | Salida                                        |
 | **Prioridad** | Alta                                           |
-| **Estado**    | Planificado (Sprint 3)                         |
+| **Estado**    | Implementado |
 | **Informe original** | RF07, RF10                              |
 
 ---

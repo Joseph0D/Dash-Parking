@@ -16,7 +16,7 @@
 | **Nombre**    | Autenticación por rol         |
 | **Módulo**    | Autenticación                  |
 | **Prioridad** | Alta                            |
-| **Estado**    | Planificado (Sprint 2)           |
+| **Estado**    | Implementado |
 | **Informe original** | RNF de seguridad (Acceso mediante autenticación, Control de permisos) |
 
 ---

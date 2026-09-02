@@ -1,0 +1,65 @@
+# docker-compose.yml — Dash Parking
+# Levanta los 3 servicios necesarios para desarrollo local: base de datos, backend y frontend.
+# Uso: ver GUIA-EJECUCION-LOCAL.md
+#
+# Nota de alcance: este compose es para DESARROLLO. No incluye optimizaciones de producción
+# (multi-stage final, réplicas, secretos gestionados) — eso es una mejora futura fuera del
+# alcance de este entregable académico (ver docs/docker-guia.md del bootcamp).
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dash-parking-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dash_parking
+      POSTGRES_PASSWORD: dash_parking
+      POSTGRES_DB: dash_parking
+    ports:
+      - "5432:5432"
+    volumes:
+      - dash_parking_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dash_parking -d dash_parking"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./be
+    container_name: dash-parking-backend
+    restart: unless-stopped
+    env_file:
+      - ./be/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://dash_parking:dash_parking@db:5432/dash_parking
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./be/app:/app/app
+    command: >
+      sh -c "python -m app.scripts.seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build:
+      context: ./fe
+    container_name: dash-parking-frontend
+    restart: unless-stopped
+    env_file:
+      - ./fe/.env
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./fe/src:/app/src
+
+volumes:
+  dash_parking_db_data:

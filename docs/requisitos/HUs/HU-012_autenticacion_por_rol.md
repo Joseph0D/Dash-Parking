@@ -16,7 +16,7 @@
 | **Título**       | Autenticación por rol       |
 | **Módulo**       | Autenticación                |
 | **Prioridad**    | Alta (Core)                  |
-| **Estado**       | Planificado (Sprint 2 — Autenticación y autorización) |
+| **Estado**       | Implementado |
 | **RF asociados** | RF-012                       |
 
 ---

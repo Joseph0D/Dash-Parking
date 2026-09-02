@@ -1,12 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import "./styles/tokens.css";
+import "./index.css";
 
-// Sprint 0: solo el esqueleto de la app monta correctamente.
-// Las pantallas reales (ingreso, salida, ocupación) se construyen desde el Sprint 5
-// (Semana 6 — Integración Frontend-Backend), según entregable-s01-plan-de-trabajo.md.
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ToastProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

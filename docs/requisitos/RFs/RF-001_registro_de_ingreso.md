@@ -16,7 +16,7 @@
 | **Nombre**    | Registro de ingreso de vehículo |
 | **Módulo**    | Ingreso                       |
 | **Prioridad** | Alta                          |
-| **Estado**    | En progreso (Sprint 0)        |
+| **Estado**    | Implementado |
 | **Informe original** | RF01, RF02, RF03, RF04 |
 
 ---

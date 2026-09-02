@@ -16,7 +16,7 @@
 | **Título**       | Registro de salida de vehículo |
 | **Módulo**       | Salida                         |
 | **Prioridad**    | Alta (Core)                    |
-| **Estado**       | Planificado (Sprint 3 — API CRUD) |
+| **Estado**       | Implementado |
 | **RF asociados** | RF-004                         |
 
 ---

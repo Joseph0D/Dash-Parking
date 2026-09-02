@@ -1,6 +1,8 @@
-# Dockerfile esqueleto del backend — Semana 1 (Sprint 0)
-# Aún NO es la imagen final: no tiene multi-stage build ni usuario no-root.
-# Esas optimizaciones se agregan en el Sprint 7 (ver docs/docker-guia.md).
+# Dockerfile del backend — Dash Parking
+# Imagen funcional de desarrollo: instala dependencias, corre el seed y levanta uvicorn con
+# --reload (ver docker-compose.yml, que monta ./be/app como volumen para hot-reload).
+# Optimización a multi-stage build + usuario no-root queda para antes de un despliegue real
+# (ver docs/docker-guia.md del bootcamp) — no es necesaria para desarrollo en equipo.
 FROM python:3.12-slim
 
 WORKDIR /app
