@@ -13,14 +13,21 @@
 | `tests/time_based_reservations_test.sql` | Pruebas (corren en una transacción y hacen `ROLLBACK`) |
 | `dash_parking_complete.sql` | Estado final listo para una base nueva (dump original + 001 + 002) |
 
-## Opción A — base nueva (lo más simple)
+## Opción A — con Docker Compose (automático)
+
+`docker compose up` crea `dash_parking_v2` y carga `dash_parking_complete.sql` mediante
+`db/init/01-create-parking-v2.sh`. **Solo ocurre cuando el volumen está vacío.** Si ya tienes el
+volumen de antes, tienes dos caminos: `docker compose down -v` (borra los datos del esquema
+anterior) o cargarla a mano como en la opción B-bis.
+
+## Opción B-bis — base nueva a mano
 
 ```bash
 docker exec dash-parking-db createdb -U dash_parking dash_parking_v2
 docker exec -i dash-parking-db psql -U dash_parking -d dash_parking_v2 < db/dash_parking_complete.sql
 ```
 
-## Opción B — ya tienes cargado `dump-dash_parking-202609161534.sql`
+## Opción C — ya tienes cargado `dump-dash_parking-202609161534.sql`
 
 Aplicar **en orden y una sola vez**:
 
@@ -54,6 +61,8 @@ Esperado: 8 líneas `ERROR` (son los casos "FALLA esperada") y ningún cambio en
 | `fn_disponibilidad_franja(parqueadero, inicio, fin)` | Libres / reservados / ocupados por zona |
 | `fn_crear_reserva(usuario, vehiculo, parqueadero, inicio, fin, [espacio])` | Crea la reserva; sin espacio asigna uno libre |
 | `fn_tarifa_vigente(tipo_vehiculo, fecha, [parqueadero])` | Tarifa vigente por parqueadero |
+| `fn_precio_estimado(parqueadero, tipo_vehiculo, inicio, fin)` | Precio de una franja antes de pagar (`NULL` si no hay tarifa) |
+| `fn_monto_por_minutos(tarifa, minutos)` | Regla de cobro única (por minuto; desde 24 h, tarifa de día) |
 
 Códigos de error (SQLSTATE) para mapear a HTTP: `23P01` espacio no disponible (409),
 `P0002` sin espacios (409), `P0001` regla de negocio (400).

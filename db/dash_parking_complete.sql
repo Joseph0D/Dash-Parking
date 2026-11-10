@@ -68,7 +68,6 @@ DECLARE
   v_inicio        timestamp;
   v_fin           timestamp;
   v_tarifa        tarifa;
-  v_minutos       integer;
 BEGIN
   IF NEW.id_ticket IS NULL AND NEW.id_reserva IS NULL THEN
     RAISE EXCEPTION 'El pago debe asociarse a un ticket o a una reserva';
@@ -91,14 +90,8 @@ BEGIN
     v_tarifa := fn_tarifa_vigente(v_tipo_vehiculo, v_inicio::date, v_estac);
   END IF;
 
-  NEW.id_tarifa := v_tarifa.id_tarifa;
-  v_minutos := EXTRACT(EPOCH FROM (v_fin - v_inicio)) / 60;
-
-  IF v_minutos >= 1440 AND v_tarifa.valor_dia IS NOT NULL THEN
-    NEW.monto_total := CEIL(v_minutos / 1440.0) * v_tarifa.valor_dia;
-  ELSE
-    NEW.monto_total := v_minutos * v_tarifa.valor_minuto;
-  END IF;
+  NEW.id_tarifa   := v_tarifa.id_tarifa;
+  NEW.monto_total := fn_monto_por_minutos(v_tarifa, (EXTRACT(EPOCH FROM (v_fin - v_inicio)) / 60)::integer);
   RETURN NEW;
 END; $$;
 
@@ -315,6 +308,37 @@ CREATE TABLE public.tarifa (
     fecha_vigencia_inicio date NOT NULL,
     fecha_vigencia_fin date
 );
+
+
+--
+-- Name: fn_monto_por_minutos(public.tarifa, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_monto_por_minutos(p_tarifa public.tarifa, p_minutos integer) RETURNS numeric
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+  IF p_minutos >= 1440 AND p_tarifa.valor_dia IS NOT NULL THEN
+    RETURN CEIL(p_minutos / 1440.0) * p_tarifa.valor_dia;
+  END IF;
+  RETURN p_minutos * p_tarifa.valor_minuto;
+END; $$;
+
+
+--
+-- Name: fn_precio_estimado(integer, integer, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_precio_estimado(p_id_estacionamiento integer, p_id_tipo_vehiculo integer, p_inicio timestamp without time zone, p_fin timestamp without time zone) RETURNS numeric
+    LANGUAGE plpgsql STABLE
+    AS $$
+BEGIN
+  RETURN fn_monto_por_minutos(
+    fn_tarifa_vigente(p_id_tipo_vehiculo, p_inicio::date, p_id_estacionamiento),
+    (EXTRACT(EPOCH FROM (p_fin - p_inicio)) / 60)::integer);
+EXCEPTION WHEN raise_exception THEN
+  RETURN NULL;
+END; $$;
 
 
 --
@@ -1637,7 +1661,7 @@ SELECT pg_catalog.setval('public.estacionamiento_id_estacionamiento_seq', 2, fal
 -- Name: pago_id_pago_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.pago_id_pago_seq', 14, true);
+SELECT pg_catalog.setval('public.pago_id_pago_seq', 16, true);
 
 
 --

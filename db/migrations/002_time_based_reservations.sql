@@ -189,4 +189,16 @@ BEGIN
     USING ERRCODE = 'no_data_found';
 END; $$ LANGUAGE plpgsql;
 
+-- 8. Precio estimado de una reserva (para mostrarlo ANTES de pagar). NULL si no hay tarifa vigente.
+CREATE OR REPLACE FUNCTION fn_precio_estimado(
+  p_id_estacionamiento integer, p_id_tipo_vehiculo integer, p_inicio timestamp, p_fin timestamp
+) RETURNS numeric AS $$
+BEGIN
+  RETURN fn_monto_por_minutos(
+    fn_tarifa_vigente(p_id_tipo_vehiculo, p_inicio::date, p_id_estacionamiento),
+    (EXTRACT(EPOCH FROM (p_fin - p_inicio)) / 60)::integer);
+EXCEPTION WHEN raise_exception THEN
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql STABLE;
+
 COMMIT;

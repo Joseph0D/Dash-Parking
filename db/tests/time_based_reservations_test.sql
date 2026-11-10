@@ -80,4 +80,8 @@ SAVEPOINT s15;
 SELECT id_reserva AS r15 FROM fn_crear_reserva(1,1,1,LOCALTIMESTAMP + interval '1 minute',LOCALTIMESTAMP + interval '2 hours',2) \gset
 INSERT INTO ticket (id_vehiculo, id_espacio, fecha_hora_entrada) VALUES (16,2,LOCALTIMESTAMP + interval '30 minutes');
 ROLLBACK TO s15;
+
+\echo '16) OK: precio estimado de 1 h para carro (tipo 1) y moto (tipo 2); tipo sin tarifa -> NULL'
+SELECT fn_precio_estimado(1,1,:'i',:'f') AS carro_1h, fn_precio_estimado(1,2,:'i',:'f') AS moto_1h,
+       fn_precio_estimado(1,99,:'i',:'f') AS sin_tarifa;
 ROLLBACK;
