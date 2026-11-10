@@ -11,12 +11,36 @@ jobs:
     defaults:
       run:
         working-directory: be
+    # PostgreSQL real: la app crea sus tablas al arrancar y las reglas de disponibilidad por
+    # franja viven en funciones SQL (db/), así que SQLite no basta para probarlas.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dash_parking
+          POSTGRES_PASSWORD: dash_parking
+          POSTGRES_DB: dash_parking
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dash_parking"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://dash_parking:dash_parking@localhost:5432/dash_parking
+      PARKING_TEST_DATABASE_URL: postgresql+psycopg://dash_parking:dash_parking@localhost:5432/dash_parking_v2
+      PGPASSWORD: dash_parking
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      - name: Cargar base de disponibilidad (dash_parking_v2)
+        run: |
+          createdb -h localhost -U dash_parking dash_parking_v2
+          psql -h localhost -U dash_parking -d dash_parking_v2 -v ON_ERROR_STOP=1 -f ../db/dash_parking_complete.sql
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest

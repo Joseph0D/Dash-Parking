@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     # Sprint 0 usaba datos en memoria; desde este entregable la app requiere PostgreSQL real.
     database_url: str = "postgresql+psycopg://dash_parking:dash_parking@localhost:5432/dash_parking"
 
+    # Base de disponibilidad por franjas (esquema en español, ver db/README.md). Convive con la base
+    # anterior mientras el resto de módulos (auth, vehículos, pagos) se migran a ella.
+    parking_database_url: str = (
+        "postgresql+psycopg://dash_parking:dash_parking@localhost:5432/dash_parking_v2"
+    )
+
     jwt_secret: str = "change-me-in-.env"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 8  # 8 horas
