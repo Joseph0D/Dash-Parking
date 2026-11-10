@@ -21,6 +21,17 @@ export function Navbar() {
         <li>
           <Link to="/espacios">Espacios</Link>
         </li>
+        <li>
+          {/* Abre la hoja de soporte (manual de usuario y técnico) en una pestaña nueva
+              para no sacar al usuario de su sesión. Archivo: fe/public/soporte/ */}
+          <a
+            href="/soporte/SOPORTE_DASHPARKING.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Soporte
+          </a>
+        </li>
         {!user && (
           <>
             <li>

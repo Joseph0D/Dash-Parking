@@ -60,6 +60,7 @@ services:
       - backend
     volumes:
       - ./fe/src:/app/src
+      - ./fe/public:/app/public
 
 volumes:
   dash_parking_db_data:
