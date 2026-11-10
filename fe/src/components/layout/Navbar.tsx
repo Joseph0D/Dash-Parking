@@ -22,6 +22,9 @@ export function Navbar() {
           <Link to="/espacios">Espacios</Link>
         </li>
         <li>
+          <Link to="/disponibilidad">Disponibilidad</Link>
+        </li>
+        <li>
           {/* Abre la hoja de soporte (manual de usuario y técnico) en una pestaña nueva
               para no sacar al usuario de su sesión. Archivo: fe/public/soporte/ */}
           <a

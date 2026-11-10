@@ -110,3 +110,61 @@ export interface DashboardData {
   by_vehicle_type: { vehicle_type: VehicleType; total_amount: string; session_count: number }[];
   by_day: { day: string; total_amount: string; session_count: number }[];
 }
+
+// ---------------------------------------------------------------------------------------------
+// Disponibilidad por franja (be/app/schemas/availability.py). Los precios (Decimal) llegan como
+// texto desde la API: convertir con Number() solo al mostrarlos.
+// ---------------------------------------------------------------------------------------------
+export type SpaceStatus = "available" | "reserved" | "occupied" | "maintenance";
+
+export interface ParkingLot {
+  id: number;
+  name: string;
+  identification: string;
+  address: string;
+  phone: string;
+  total_capacity: number;
+}
+
+export interface ParkingVehicleType {
+  id: number;
+  name: string;
+  description: string | null;
+  price_per_hour: string | null;
+}
+
+export interface ZoneAvailability {
+  zone_id: number;
+  zone_name: string;
+  vehicle_type_id: number;
+  capacity: number;
+  available: number;
+  reserved: number;
+  occupied: number;
+}
+
+export interface AvailabilityResponse {
+  parking_lot_id: number;
+  start: string;
+  end: string;
+  zones: ZoneAvailability[];
+}
+
+export interface Space {
+  id: number;
+  code: string;
+  zone_id: number;
+  zone_name: string;
+  space_type_id: number;
+  status: SpaceStatus;
+}
+
+export interface SpacesResponse {
+  parking_lot_id: number;
+  vehicle_type_id: number;
+  start: string;
+  end: string;
+  estimated_price: string | null;
+  available_count: number;
+  spaces: Space[];
+}
