@@ -19,6 +19,9 @@ services:
       - "5432:5432"
     volumes:
       - dash_parking_db_data:/var/lib/postgresql/data
+      # Carga dash_parking_v2 la primera vez que se crea el volumen (ver db/README.md)
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - ./db/dash_parking_complete.sql:/db/dash_parking_complete.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dash_parking -d dash_parking"]
       interval: 5s
@@ -34,6 +37,7 @@ services:
       - ./be/.env
     environment:
       DATABASE_URL: postgresql+psycopg://dash_parking:dash_parking@db:5432/dash_parking
+      PARKING_DATABASE_URL: postgresql+psycopg://dash_parking:dash_parking@db:5432/dash_parking_v2
     ports:
       - "8000:8000"
     depends_on:

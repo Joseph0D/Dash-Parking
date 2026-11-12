@@ -16,7 +16,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import Base, engine
 from app.models import *  # noqa: F401,F403  — registra todos los modelos antes de create_all
-from app.routers import auth, payments, rates, reports, reservations, sessions, spots, vehicles
+from app.routers import (
+    auth,
+    availability,
+    payments,
+    rates,
+    reports,
+    reservations,
+    sessions,
+    spots,
+    vehicles,
+)
 
 app = FastAPI(
     title="Dash Parking API",
@@ -40,6 +50,7 @@ def on_startup() -> None:
 
 app.include_router(auth.router)
 app.include_router(vehicles.router)
+app.include_router(availability.router)
 app.include_router(spots.router)
 app.include_router(rates.router)
 app.include_router(sessions.router)
