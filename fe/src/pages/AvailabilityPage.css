@@ -1,0 +1,110 @@
+/* Estilos propios de la pantalla de disponibilidad. El resto (spot-cell, filter-btn, leyenda,
+   summary-bar) se reutiliza de SpotsPage.css para que ambas pantallas se vean igual. */
+
+.availability-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.availability-field--row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.availability-field--row .form-field {
+  flex: 1 1 220px;
+}
+
+.availability-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.filter-bar--left {
+  justify-content: flex-start;
+  margin-bottom: 0;
+}
+
+.filter-btn small {
+  font-weight: 400;
+}
+
+.filter-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lot-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+
+.lot-card span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.availability-error {
+  text-align: center;
+  color: var(--color-danger);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.availability-loading {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.zone-list {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.zone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.zone-card span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.zone-card--active {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
+.dot--maintenance {
+  background: var(--color-text-subtle);
+}
+
+.spot-cell--maintenance {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border-color: var(--color-border-strong);
+}
