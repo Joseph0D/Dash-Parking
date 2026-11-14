@@ -19,10 +19,10 @@ export function Navbar() {
       </Link>
       <ul className="nav-links">
         <li>
-          <Link to="/espacios">Espacios</Link>
+          <Link to="/disponibilidad">Reservar</Link>
         </li>
         <li>
-          <Link to="/disponibilidad">Disponibilidad</Link>
+          <Link to="/dueno">Panel dueño</Link>
         </li>
         <li>
           {/* Abre la hoja de soporte (manual de usuario y técnico) en una pestaña nueva

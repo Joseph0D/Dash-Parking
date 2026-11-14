@@ -52,3 +52,31 @@ export function validateWindow(start: string, end: string, now: Date = new Date(
   }
   return null;
 }
+
+/** Duración legible entre dos "YYYY-MM-DDTHH:mm[:ss]": "45 min", "1 h", "1 h 30 min", "1 d 2 h". */
+export function formatDuration(start: string, end: string): string {
+  const minutes = Math.round(
+    (new Date(`${end.slice(0, 16)}:00Z`).getTime() - new Date(`${start.slice(0, 16)}:00Z`).getTime()) /
+      60000,
+  );
+  if (minutes <= 0) return "—";
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  const rest = minutes % 60;
+  const parts: string[] = [];
+  if (days) parts.push(`${days} d`);
+  if (hours) parts.push(`${hours} h`);
+  if (rest) parts.push(`${rest} min`);
+  return parts.join(" ");
+}
+
+/** Fecha y hora para mostrar al usuario (la hora es de pared, no se convierte de zona). */
+export function formatDateTime(local: string): string {
+  return new Intl.DateTimeFormat("es-CO", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(local));
+}
