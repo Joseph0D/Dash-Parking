@@ -1,4 +1,4 @@
--- Dash Parking - estado final de la base (dump original + migraciones 001 y 002).
+-- Dash Parking - estado final de la base (dump original + migraciones 001, 002 y 003).
 -- Para una base NUEVA: createdb dash_parking_v2 && psql -d dash_parking_v2 -f dash_parking_complete.sql
 
 --
@@ -93,6 +93,37 @@ BEGIN
   NEW.id_tarifa   := v_tarifa.id_tarifa;
   NEW.monto_total := fn_monto_por_minutos(v_tarifa, (EXTRACT(EPOCH FROM (v_fin - v_inicio)) / 60)::integer);
   RETURN NEW;
+END; $$;
+
+
+--
+-- Name: fn_cancelar_reserva(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_cancelar_reserva(p_id_reserva integer, p_id_usuario integer) RETURNS numeric
+    LANGUAGE plpgsql
+    AS $$
+DECLARE r reserva; v_reembolso numeric;
+BEGIN
+  SELECT * INTO r FROM reserva WHERE id_reserva = p_id_reserva AND id_usuario = p_id_usuario FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'La reserva % no existe o no te pertenece', p_id_reserva USING ERRCODE = 'no_data_found';
+  END IF;
+  IF r.estado_reserva <> 'activa' THEN
+    RAISE EXCEPTION 'La reserva ya está %', r.estado_reserva;
+  END IF;
+  IF EXISTS (SELECT 1 FROM ticket WHERE id_reserva = r.id_reserva) THEN
+    RAISE EXCEPTION 'El vehículo ya ingresó: la reserva no se puede cancelar';
+  END IF;
+  IF r.fecha_reserva <= LOCALTIMESTAMP THEN
+    RAISE EXCEPTION 'La reserva ya comenzó: no se puede cancelar';
+  END IF;
+
+  UPDATE reserva SET estado_reserva = 'cancelada' WHERE id_reserva = r.id_reserva;
+  UPDATE pago SET estado_pago = 'Reembolsado'
+  WHERE id_reserva = r.id_reserva AND estado_pago = 'Aprobado'
+  RETURNING monto_total INTO v_reembolso;
+  RETURN COALESCE(v_reembolso, 0);
 END; $$;
 
 
@@ -295,6 +326,20 @@ $$;
 
 
 --
+-- Name: fn_finalizar_reserva_al_salir(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_finalizar_reserva_al_salir() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  UPDATE reserva SET estado_reserva = 'finalizada'
+  WHERE id_reserva = NEW.id_reserva AND estado_reserva = 'activa';
+  RETURN NEW;
+END; $$;
+
+
+--
 -- Name: tarifa; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -338,6 +383,84 @@ BEGIN
     (EXTRACT(EPOCH FROM (p_fin - p_inicio)) / 60)::integer);
 EXCEPTION WHEN raise_exception THEN
   RETURN NULL;
+END; $$;
+
+
+--
+-- Name: ticket; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ticket (
+    id_ticket integer NOT NULL,
+    id_vehiculo integer NOT NULL,
+    id_espacio integer NOT NULL,
+    id_reserva integer,
+    fecha_hora_entrada timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fecha_hora_salida timestamp without time zone,
+    estado_ticket character varying(20) DEFAULT 'Activo'::character varying NOT NULL,
+    CONSTRAINT ticket_estado_ticket_check CHECK (((estado_ticket)::text = ANY ((ARRAY['Activo'::character varying, 'Pagado'::character varying, 'Finalizado'::character varying, 'Anulado'::character varying])::text[])))
+);
+
+
+--
+-- Name: fn_registrar_ingreso(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_registrar_ingreso(p_id_reserva integer) RETURNS public.ticket
+    LANGUAGE plpgsql
+    AS $$
+DECLARE r reserva; t ticket;
+BEGIN
+  SELECT * INTO r FROM reserva WHERE id_reserva = p_id_reserva FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'La reserva % no existe', p_id_reserva USING ERRCODE = 'no_data_found';
+  END IF;
+  IF r.estado_reserva <> 'activa' THEN
+    RAISE EXCEPTION 'La reserva está %: no se puede registrar el ingreso', r.estado_reserva;
+  END IF;
+  IF EXISTS (SELECT 1 FROM ticket WHERE id_reserva = r.id_reserva) THEN
+    RAISE EXCEPTION 'Esta reserva ya fue utilizada';
+  END IF;
+  IF LOCALTIMESTAMP < r.fecha_reserva - interval '15 minutes' THEN
+    RAISE EXCEPTION 'Aún no es la hora de la reserva (se puede ingresar desde 15 minutos antes)';
+  END IF;
+  IF LOCALTIMESTAMP >= r.fecha_hora_fin THEN
+    RAISE EXCEPTION 'La franja de la reserva ya terminó';
+  END IF;
+
+  INSERT INTO ticket (id_vehiculo, id_espacio, id_reserva, fecha_hora_entrada, estado_ticket)
+  VALUES (r.id_vehiculo, r.id_espacio, r.id_reserva, LOCALTIMESTAMP,
+          CASE WHEN EXISTS (SELECT 1 FROM pago WHERE id_reserva = r.id_reserva
+                            AND estado_pago = 'Aprobado') THEN 'Pagado' ELSE 'Activo' END)
+  RETURNING * INTO t;
+  RETURN t;
+END; $$;
+
+
+--
+-- Name: fn_registrar_salida(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fn_registrar_salida(p_id_ticket integer) RETURNS public.ticket
+    LANGUAGE plpgsql
+    AS $$
+DECLARE t ticket;
+BEGIN
+  SELECT * INTO t FROM ticket WHERE id_ticket = p_id_ticket FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'El ticket % no existe', p_id_ticket USING ERRCODE = 'no_data_found';
+  END IF;
+  IF t.fecha_hora_salida IS NOT NULL THEN
+    RAISE EXCEPTION 'El ticket % ya registró su salida', p_id_ticket;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pago
+                 WHERE estado_pago = 'Aprobado'
+                   AND (id_ticket = t.id_ticket OR (t.id_reserva IS NOT NULL AND id_reserva = t.id_reserva))) THEN
+    RAISE EXCEPTION 'El ticket % no tiene un pago aprobado', p_id_ticket;
+  END IF;
+  UPDATE ticket SET fecha_hora_salida = LOCALTIMESTAMP, estado_ticket = 'Finalizado'
+  WHERE id_ticket = t.id_ticket RETURNING * INTO t;
+  RETURN t;
 END; $$;
 
 
@@ -574,7 +697,7 @@ CREATE TABLE public.pago (
     fecha_pago timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     referencia_transaccion character varying(100),
     id_reserva integer,
-    CONSTRAINT pago_estado_pago_check CHECK (((estado_pago)::text = ANY (ARRAY[('Pendiente'::character varying)::text, ('Aprobado'::character varying)::text, ('Rechazado'::character varying)::text]))),
+    CONSTRAINT pago_estado_pago_check CHECK (((estado_pago)::text = ANY ((ARRAY['Pendiente'::character varying, 'Aprobado'::character varying, 'Rechazado'::character varying, 'Reembolsado'::character varying])::text[]))),
     CONSTRAINT pago_metodo_pago_check CHECK (((metodo_pago)::text = ANY ((ARRAY['Efectivo'::character varying, 'Tarjeta Credito'::character varying, 'Tarjeta Debito'::character varying, 'PSE'::character varying, 'Nequi'::character varying, 'Daviplata'::character varying])::text[]))),
     CONSTRAINT pago_ticket_o_reserva CHECK (((id_ticket IS NOT NULL) OR (id_reserva IS NOT NULL)))
 );
@@ -650,22 +773,6 @@ ALTER TABLE public.tarifa ALTER COLUMN id_tarifa ADD GENERATED BY DEFAULT AS IDE
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
-);
-
-
---
--- Name: ticket; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ticket (
-    id_ticket integer NOT NULL,
-    id_vehiculo integer NOT NULL,
-    id_espacio integer NOT NULL,
-    id_reserva integer,
-    fecha_hora_entrada timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    fecha_hora_salida timestamp without time zone,
-    estado_ticket character varying(20) DEFAULT 'Activo'::character varying NOT NULL,
-    CONSTRAINT ticket_estado_ticket_check CHECK (((estado_ticket)::text = ANY ((ARRAY['Activo'::character varying, 'Pagado'::character varying, 'Finalizado'::character varying, 'Anulado'::character varying])::text[])))
 );
 
 
@@ -871,6 +978,76 @@ CREATE VIEW public.vw_ingresos_diarios AS
      JOIN public.tipo_vehiculo tv ON ((tv.id_tipo_vehiculo = v.id_tipo_vehiculo)))
   WHERE ((p.estado_pago)::text = 'Aprobado'::text)
   GROUP BY (date(p.fecha_pago)), tv.nombre_tipo;
+
+
+--
+-- Name: vw_reservas_detalle; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.vw_reservas_detalle AS
+ SELECT r.id_reserva,
+    r.id_usuario,
+    u.nombres,
+    u.apellidos,
+    r.id_estacionamiento,
+    est.nombre_parqueadero,
+    r.id_espacio,
+    e.numero_de_espacio,
+    z.nombre_zona,
+    r.id_vehiculo,
+    v.placa,
+    v.id_tipo_vehiculo,
+    tv.nombre_tipo AS tipo_vehiculo,
+    r.fecha_reserva AS fecha_inicio,
+    r.fecha_hora_fin AS fecha_fin,
+    r.estado_reserva,
+        CASE
+            WHEN (((r.estado_reserva)::text = 'activa'::text) AND (t.id_ticket IS NOT NULL) AND (t.fecha_hora_salida IS NULL)) THEN 'en curso'::character varying
+            WHEN (((r.estado_reserva)::text = 'activa'::text) AND (r.fecha_hora_fin < LOCALTIMESTAMP)) THEN 'vencida'::character varying
+            ELSE r.estado_reserva
+        END AS estado_visible,
+    t.id_ticket,
+    t.fecha_hora_entrada,
+    t.fecha_hora_salida,
+    p.id_pago,
+    p.metodo_pago,
+    p.monto_total,
+    p.estado_pago,
+    p.referencia_transaccion,
+    p.fecha_pago,
+    c.numero_comprobante AS id_comprobante
+   FROM (((((((((public.reserva r
+     JOIN public.usuario u ON ((u.id_usuario = r.id_usuario)))
+     JOIN public.estacionamiento est ON ((est.id_estacionamiento = r.id_estacionamiento)))
+     JOIN public.espacios e ON ((e.id_espacio = r.id_espacio)))
+     JOIN public.zona z ON ((z.id_zona = r.id_zona)))
+     JOIN public.vehiculo v ON ((v.id_vehiculo = r.id_vehiculo)))
+     JOIN public.tipo_vehiculo tv ON ((tv.id_tipo_vehiculo = v.id_tipo_vehiculo)))
+     LEFT JOIN LATERAL ( SELECT ticket.id_ticket,
+            ticket.id_vehiculo,
+            ticket.id_espacio,
+            ticket.id_reserva,
+            ticket.fecha_hora_entrada,
+            ticket.fecha_hora_salida,
+            ticket.estado_ticket
+           FROM public.ticket
+          WHERE (ticket.id_reserva = r.id_reserva)
+          ORDER BY ticket.id_ticket DESC
+         LIMIT 1) t ON (true))
+     LEFT JOIN LATERAL ( SELECT pago.id_pago,
+            pago.id_ticket,
+            pago.id_tarifa,
+            pago.monto_total,
+            pago.metodo_pago,
+            pago.estado_pago,
+            pago.fecha_pago,
+            pago.referencia_transaccion,
+            pago.id_reserva
+           FROM public.pago
+          WHERE (pago.id_reserva = r.id_reserva)
+          ORDER BY pago.id_pago DESC
+         LIMIT 1) p ON (true))
+     LEFT JOIN public.comprobante c ON ((c.id_pago = p.id_pago)));
 
 
 --
@@ -1640,7 +1817,7 @@ COPY public.zona (id_zona, id_estacionamiento, id_tipo_vehiculo, nombre_zona, ca
 -- Name: comprobante_id_comprobante_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.comprobante_id_comprobante_seq', 11, true);
+SELECT pg_catalog.setval('public.comprobante_id_comprobante_seq', 13, true);
 
 
 --
@@ -1668,7 +1845,7 @@ SELECT pg_catalog.setval('public.pago_id_pago_seq', 16, true);
 -- Name: reserva_id_reserva_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.reserva_id_reserva_seq', 15, true);
+SELECT pg_catalog.setval('public.reserva_id_reserva_seq', 17, true);
 
 
 --
@@ -1689,7 +1866,7 @@ SELECT pg_catalog.setval('public.tarifa_id_tarifa_seq', 11, false);
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.ticket_id_ticket_seq', 18, true);
+SELECT pg_catalog.setval('public.ticket_id_ticket_seq', 19, true);
 
 
 --
@@ -1982,10 +2159,10 @@ CREATE TRIGGER trg_estado_ticket AFTER INSERT OR UPDATE ON public.pago FOR EACH 
 
 
 --
--- Name: ticket trg_finalizar_reserva; Type: TRIGGER; Schema: public; Owner: -
+-- Name: ticket trg_finalizar_reserva_al_salir; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trg_finalizar_reserva AFTER INSERT ON public.ticket FOR EACH ROW EXECUTE FUNCTION public.fn_finalizar_reserva();
+CREATE TRIGGER trg_finalizar_reserva_al_salir AFTER UPDATE OF fecha_hora_salida ON public.ticket FOR EACH ROW WHEN (((old.fecha_hora_salida IS NULL) AND (new.fecha_hora_salida IS NOT NULL) AND (new.id_reserva IS NOT NULL))) EXECUTE FUNCTION public.fn_finalizar_reserva_al_salir();
 
 
 --
