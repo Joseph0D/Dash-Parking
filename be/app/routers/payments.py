@@ -20,6 +20,8 @@ from app.schemas.payment import (
     QRPassResponse,
     QRValidateRequest,
     QRValidateResponse,
+    VehicleQRValidateRequest,
+    VehicleQRValidateResponse,
     VirtualPaymentRequest,
 )
 from app.services.fee_service import elapsed_seconds
@@ -32,7 +34,13 @@ from app.services.payment_service import (
     pay_with_cash,
 )
 from app.services.parking_service import NoActiveRateError
-from app.services.qr_service import InvalidQRTokenError, generate_qr_pass, validate_qr_token
+from app.services.qr_service import (
+    InvalidQRTokenError,
+    InvalidVehicleQRTokenError,
+    generate_qr_pass,
+    validate_qr_token,
+    validate_vehicle_qr,
+)
 
 router = APIRouter(prefix="/api/v1/payments", tags=["payments"])
 
@@ -108,6 +116,23 @@ def validate_qr(
         vehicle_type=session.vehicle.vehicle_type.value,
         elapsed_seconds=elapsed_seconds(session.entry_time),
         amount=current_amount(db, session),
+    )
+
+
+@router.post("/qr/vehicle/validate", response_model=VehicleQRValidateResponse)
+def validate_vehicle_qr_endpoint(
+    payload: VehicleQRValidateRequest,
+    _staff: User = Depends(require_staff),
+    db: Session = Depends(get_db),
+) -> VehicleQRValidateResponse:
+    try:
+        vehicle = validate_vehicle_qr(db, payload.token)
+    except InvalidVehicleQRTokenError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    return VehicleQRValidateResponse(
+        vehicle_id=vehicle.id,
+        plate=vehicle.plate,
+        vehicle_type=vehicle.vehicle_type.value,
     )
 
 

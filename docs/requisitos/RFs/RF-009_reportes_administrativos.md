@@ -16,15 +16,17 @@
 | **Nombre**    | Generación de reportes administrativos     |
 | **Módulo**    | Administrativo                             |
 | **Prioridad** | Media                                       |
-| **Estado**    | Implementado (vía RF-017) |
+| **Estado**    | Parcial; dashboard global y panel diario de dueño tienen alcances distintos |
 | **Informe original** | RF14                                   |
 
 ---
 
 ## Descripción
 
-El sistema debe generar reportes de vehículos atendidos, ingresos económicos y ocupación para un
-rango de fechas seleccionado.
+El sistema genera reportes de vehículos atendidos, ingresos y ocupación en el alcance autorizado.
+El administrador de plataforma puede consultar datos globales; el dueño solo los de sus
+parqueaderos. El panel diario del dueño se define aparte en RF-020 y no equivale a un reporte
+histórico.
 
 ---
 
@@ -59,10 +61,11 @@ rango de fechas seleccionado.
 
 | Método | Ruta                                                   | Auth requerida | Descripción            |
 | ------ | ---------------------------------------------------------| -------------- | --------------------------|
-| GET    | `/api/v1/reports?start_date=...&end_date=...`            | Sí (solo administrador) | Genera el reporte consolidado |
+| GET    | `/api/v1/reports/dashboard` | Sí (solo administrador de plataforma) | Métricas agregadas y filtrables; ver RF-017 |
 
 ---
 
 ## Reglas de negocio
 
-- RN-015: Solo el rol administrador puede generar reportes (ver RF-012).
+- RN-015: El rol y el alcance del parqueadero se validan en backend; los reportes globales son
+  exclusivos del administrador de plataforma. El panel diario de dueño verifica propiedad (RF-020).

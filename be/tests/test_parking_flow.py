@@ -2,7 +2,11 @@
 Pruebas del flujo operativo completo: vehículo -> ingreso -> cobro -> pago (RF-001, RF-002,
 RF-004, RF-005, RF-006, RF-014).
 """
+from datetime import datetime, timedelta, timezone
+import uuid
+
 from app.models.enums import UserRole, VehicleType
+from app.models.reservation import Reservation
 
 from .helpers import auth_headers, create_user, seed_rate, seed_spot
 
@@ -56,6 +60,37 @@ def test_entry_without_available_spot_returns_422(client, db_session):
         "/api/v1/sessions/entry", json={"plate": "ABC123", "vehicle_type": "car"}, headers=staff_headers
     )
     assert entry_resp.status_code == 422
+
+
+def test_unreserved_entry_cannot_take_a_spot_reserved_for_another_vehicle(client, db_session):
+    create_user(db_session, "client@example.com", role=UserRole.CLIENT)
+    create_user(db_session, "staff@example.com", role=UserRole.OPERATOR)
+    seed_rate(db_session, VehicleType.CAR, "4000")
+    spot = seed_spot(db_session, "A-01", VehicleType.CAR)
+    client_headers = auth_headers(client, "client@example.com")
+    staff_headers = auth_headers(client, "staff@example.com")
+    reserved_vehicle = _register_vehicle(client, client_headers, "ABC123").json()
+    _register_vehicle(client, client_headers, "XYZ789")
+
+    now = datetime.now(timezone.utc)
+    db_session.add(
+        Reservation(
+            vehicle_id=uuid.UUID(reserved_vehicle["id"]),
+            spot_id=spot.id,
+            vehicle_type=VehicleType.CAR,
+            start_time=now - timedelta(minutes=1),
+            end_time=now + timedelta(hours=1),
+        )
+    )
+    db_session.commit()
+
+    response = client.post(
+        "/api/v1/sessions/entry",
+        json={"plate": "XYZ789", "vehicle_type": "car"},
+        headers=staff_headers,
+    )
+
+    assert response.status_code == 422
 
 
 def test_client_cannot_register_entry(client, db_session):

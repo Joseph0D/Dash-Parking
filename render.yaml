@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: dash-parking-api
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerContext: .
+    dockerfilePath: ./be/Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: EMAIL_PROVIDER
+        value: brevo
+      - key: EMAIL_TIMEOUT_SECONDS
+        value: "10"
+      - key: EMAIL_FROM_NAME
+        value: Dash Parking
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: EMAIL_FROM_EMAIL
+        sync: false

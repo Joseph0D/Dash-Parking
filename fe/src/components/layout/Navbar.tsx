@@ -54,6 +54,13 @@ export function Navbar() {
             </Link>
           </li>
         )}
+        {user && user.role === "owner" && (
+          <li>
+            <Link to="/owner" className="btn-cta">
+              Mis parqueaderos
+            </Link>
+          </li>
+        )}
         {user && (user.role === "admin" || user.role === "operator") && (
           <li>
             <Link to="/admin" className="btn-cta">

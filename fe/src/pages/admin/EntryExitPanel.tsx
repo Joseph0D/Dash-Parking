@@ -14,6 +14,7 @@ export function EntryExitPanel({ onChange }: { onChange: () => void }) {
   const [entryPlate, setEntryPlate] = useState("");
   const [entryType, setEntryType] = useState<VehicleType>("car");
   const [entryLoading, setEntryLoading] = useState(false);
+  const [entryQrToken, setEntryQrToken] = useState("");
 
   const [exitPlate, setExitPlate] = useState("");
   const [exitSession, setExitSession] = useState<SessionDetail | null>(null);
@@ -27,6 +28,22 @@ export function EntryExitPanel({ onChange }: { onChange: () => void }) {
       const session = await sessionsApi.registerEntry(entryPlate, entryType);
       toast.success(`Vehículo ${session.plate} ingresado en el espacio ${session.spot_code}`);
       setEntryPlate("");
+      onChange();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setEntryLoading(false);
+    }
+  }
+
+  async function handleEntryQr(event: FormEvent) {
+    event.preventDefault();
+    if (!entryQrToken) return;
+    setEntryLoading(true);
+    try {
+      const session = await sessionsApi.registerEntryByQr(entryQrToken);
+      toast.success(`Vehículo ${session.plate} ingresado por QR en el espacio ${session.spot_code}`);
+      setEntryQrToken("");
       onChange();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -84,6 +101,25 @@ export function EntryExitPanel({ onChange }: { onChange: () => void }) {
           </div>
           <Button type="submit" loading={entryLoading}>
             Registrar ingreso
+          </Button>
+        </form>
+        <form
+          className="inline-form"
+          onSubmit={handleEntryQr}
+          style={{ flexDirection: "column", alignItems: "stretch", marginTop: "1rem" }}
+        >
+          <div className="form-field">
+            <label htmlFor="entry-qr">QR permanente del vehículo</label>
+            <input
+              id="entry-qr"
+              required
+              value={entryQrToken}
+              onChange={(e) => setEntryQrToken(e.target.value)}
+              placeholder="Escanea o pega el token"
+            />
+          </div>
+          <Button type="submit" variant="secondary" loading={entryLoading}>
+            Registrar ingreso por QR
           </Button>
         </form>
       </Card>

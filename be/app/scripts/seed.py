@@ -9,6 +9,7 @@ Impacto: Si no corre, el sistema arranca sin tarifas (RF-005 fallaría con NoAct
 Uso: python -m app.scripts.seed   (ver GUIA-EJECUCION-LOCAL.md)
 Es idempotente: se puede correr varias veces sin duplicar datos.
 """
+
 from __future__ import annotations
 
 from decimal import Decimal
@@ -16,6 +17,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.core.security import hash_password
 from app.database import Base, SessionLocal, engine
 from app.models import *  # noqa: F401,F403
@@ -53,7 +55,9 @@ PREFIX_BY_TYPE = {
 
 
 def seed_admin(db: Session) -> None:
-    existing = db.execute(select(User).where(User.email == DEFAULT_ADMIN_EMAIL)).scalar_one_or_none()
+    existing = db.execute(
+        select(User).where(User.email == DEFAULT_ADMIN_EMAIL)
+    ).scalar_one_or_none()
     if existing is not None:
         print(f"[seed] Admin ya existe: {DEFAULT_ADMIN_EMAIL}")
         return
@@ -69,7 +73,9 @@ def seed_admin(db: Session) -> None:
 
 def seed_rates(db: Session) -> None:
     for vehicle_type, price in DEFAULT_RATES.items():
-        existing = db.execute(select(Rate).where(Rate.vehicle_type == vehicle_type)).scalar_one_or_none()
+        existing = db.execute(
+            select(Rate).where(Rate.vehicle_type == vehicle_type)
+        ).scalar_one_or_none()
         if existing is None:
             db.add(Rate(vehicle_type=vehicle_type, price_per_hour=price))
             print(f"[seed] Tarifa creada: {vehicle_type.value} = ${price}/hora")
@@ -81,13 +87,26 @@ def seed_spots(db: Session) -> None:
         zone = ZONE_BY_TYPE[vehicle_type]
         for i in range(1, count + 1):
             code = f"{prefix}-{i:02d}"
-            existing = db.execute(select(ParkingSpot).where(ParkingSpot.code == code)).scalar_one_or_none()
+            existing = db.execute(
+                select(ParkingSpot).where(ParkingSpot.code == code)
+            ).scalar_one_or_none()
             if existing is None:
-                db.add(ParkingSpot(code=code, zone=zone, vehicle_type=vehicle_type, status=SpotStatus.AVAILABLE))
+                db.add(
+                    ParkingSpot(
+                        code=code,
+                        zone=zone,
+                        vehicle_type=vehicle_type,
+                        status=SpotStatus.AVAILABLE,
+                    )
+                )
         print(f"[seed] {count} espacios asegurados en {zone} ({vehicle_type.value})")
 
 
 def run() -> None:
+    if settings.app_env.casefold() == "production":
+        raise RuntimeError(
+            "El seed de datos de ejemplo está deshabilitado en producción"
+        )
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:

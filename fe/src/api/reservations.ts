@@ -1,15 +1,16 @@
 import { apiRequest } from "./client";
-import type { Reservation, VehicleType } from "./types";
+import type { Reservation } from "./types";
 
 export function createReservation(
+  parking_lot_id: string,
   vehicle_id: string,
-  vehicle_type: VehicleType,
   start_time: string,
-  duration_hours: number
+  end_time: string,
+  spot_id?: string,
 ): Promise<Reservation> {
   return apiRequest<Reservation>("/api/v1/reservations", {
     method: "POST",
-    body: { vehicle_id, vehicle_type, start_time, duration_hours },
+    body: { parking_lot_id, vehicle_id, start_time, end_time, spot_id },
   });
 }
 

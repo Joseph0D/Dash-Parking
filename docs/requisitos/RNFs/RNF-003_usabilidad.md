@@ -16,7 +16,7 @@
 | **Nombre**    | Usabilidad            |
 | **Categoría** | Usabilidad / UX         |
 | **Prioridad** | Alta                    |
-| **Estado**    | Planificado (Sprint 5 — Integración FE-BE) |
+| **Estado**    | Parcial; la experiencia móvil requiere validación sistemática |
 
 ---
 
@@ -37,3 +37,13 @@ clara de éxito o error.
 ### RNF-003.4 — Mensajes de error entendibles
 Los mensajes de error deben describir el problema en lenguaje claro, sin jerga técnica ni
 códigos internos.
+
+### RNF-003.5 — Uso móvil
+Los flujos principales (registro, consulta de disponibilidad, reserva y recuperación de
+contraseña) deben poder completarse en una pantalla de 360 × 640 píxeles sin desplazamiento
+horizontal. El mapa y sus controles deben seguir siendo utilizables con interacción táctil.
+Este criterio requiere validación visual en navegadores móviles antes de aceptarse.
+
+### RNF-003.6 — Retroalimentación sobre disponibilidad
+La interfaz distingue claramente la disponibilidad consultada de una reserva confirmada y
+explica los conflictos de horario, tipo de vehículo o inventario sin depender solo del color.

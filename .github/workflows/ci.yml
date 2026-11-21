@@ -11,8 +11,7 @@ jobs:
     defaults:
       run:
         working-directory: be
-    # PostgreSQL real: la app crea sus tablas al arrancar y las reglas de disponibilidad por
-    # franja viven en funciones SQL (db/), así que SQLite no basta para probarlas.
+    # PostgreSQL real: las pruebas de disponibilidad por franja usan funciones SQL (db/).
     services:
       postgres:
         image: postgres:16
@@ -48,6 +47,8 @@ jobs:
   frontend:
     if: hashFiles('fe/**') != ''
     runs-on: ubuntu-24.04
+    env:
+      VITE_API_BASE_URL: https://api.example.invalid
     defaults:
       run:
         working-directory: fe

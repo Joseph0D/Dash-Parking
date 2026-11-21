@@ -44,3 +44,13 @@ class QRValidateResponse(BaseModel):
     vehicle_type: str
     elapsed_seconds: int
     amount: Decimal
+
+
+class VehicleQRValidateRequest(BaseModel):
+    token: str
+
+
+class VehicleQRValidateResponse(BaseModel):
+    vehicle_id: uuid.UUID
+    plate: str | None
+    vehicle_type: str

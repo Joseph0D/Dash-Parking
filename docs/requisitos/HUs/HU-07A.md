@@ -1,10 +1,10 @@
 # HU-07A – Registro y consulta de parqueaderos
 
-**Módulo:** parqueaderos · **Rol:** administrador
+**Módulo:** parqueaderos · **Rol:** dueño (administrador de plataforma para soporte)
 
 ## Historia de usuario
 
-> Como administrador, quiero registrar y consultar parqueaderos, para administrar los parqueaderos disponibles en la plataforma.
+> Como dueño, quiero registrar y consultar mis parqueaderos, para administrar los lugares que opero en la plataforma.
 
 ## Criterios de aceptación
 
@@ -13,6 +13,8 @@
 - [ ] La capacidad total debe ser un número entero mayor que cero.
 - [ ] Un parqueadero nuevo queda activo por defecto.
 - [ ] Puedo ver la lista de parqueaderos y el detalle de cada uno.
+- [ ] Puedo registrar ubicación geográfica y horarios semanales para habilitar reservas.
+- [ ] Solo aparecen parqueaderos propios en mi panel; la propiedad se valida en el backend.
 
 ## Dependencias
 
@@ -24,4 +26,5 @@ Ninguno.
 
 ## Cambio respecto a la historia original
 
-Nueva: sale de dividir la HU-07 original (4 operaciones).
+La gestión ordinaria corresponde al dueño del parqueadero. El administrador de plataforma puede
+prestar soporte, pero no reemplaza el aislamiento por propietario.

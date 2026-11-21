@@ -1,11 +1,8 @@
-"""
-Módulo: parking_database.py
-Qué: Engine y sesiones de SQLAlchemy contra la base de disponibilidad por franjas
-     (`dash_parking_v2`, esquema en español definido en db/).
-Para qué: Consultar parqueaderos, zonas y espacios por franja horaria llamando a las funciones
-          de PostgreSQL (`fn_estado_espacios`, `fn_disponibilidad_franja`, `fn_precio_estimado`).
-Impacto: Si esta base no está cargada o no responde, solo fallan los endpoints de
-         disponibilidad (503); el resto de la API sigue usando `app.database`.
+"""Conexión de mantenimiento a la base legada `dash_parking_v2`.
+
+La disponibilidad y las reservas nuevas consultan `app.database` (dash_parking/UUID).
+Esta conexión se conserva para scripts y operaciones sobre el respaldo; no es una fuente
+activa de datos para los endpoints del producto.
 """
 
 from __future__ import annotations

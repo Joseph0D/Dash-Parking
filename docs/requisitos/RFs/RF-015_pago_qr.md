@@ -1,14 +1,15 @@
-# RF-015 — Pago y validación con código QR
+# RF-015 — Identificación de sesión y pago con código QR
 
 ## Identificación
 | Campo | Valor |
 |---|---|
 | **ID** | RF-015 · **Módulo** | Pagos · **Estado** | Implementado |
-| **HU asociada** | HU-015 |
+| **HU asociada** | HU-37 |
 
 ## Descripción
-Genera un token único de un solo uso asociado a la sesión activa de un cliente, codificado en una
-imagen QR. El operario (o el propio cliente) lo valida para completar el cobro.
+Genera un token de un solo uso asociado a la sesión activa y lo codifica en una imagen QR para
+facilitar su identificación y cobro. El QR permanente asociado a un vehículo se especifica por
+separado en RF-023.
 
 ## Entradas
 | Campo | Tipo | Obligatorio | Validaciones |
@@ -32,8 +33,8 @@ imagen QR. El operario (o el propio cliente) lo valida para completar el cobro.
 ## Endpoints asociados
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
-| GET | `/api/v1/sessions/{id}/qr` | Sí (dueño) | Genera el QR de la sesión |
-| POST | `/api/v1/sessions/qr/validate` | Sí (operator/admin) | Valida un token QR |
+| GET | `/api/v1/payments/qr/{session_id}` | Sí | Genera el QR de la sesión |
+| POST | `/api/v1/payments/qr/validate` | Sí (operator/admin) | Valida un token QR |
 
 ## Reglas de negocio
 - RN-026: Un token QR es de un solo uso.

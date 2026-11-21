@@ -42,6 +42,10 @@
   gap: 0.9rem;
 }
 
+.reservation-actions {
+  margin-bottom: 1rem;
+}
+
 .entity-row {
   display: flex;
   justify-content: space-between;

@@ -33,3 +33,8 @@ El sistema debe funcionar en los equipos actualmente disponibles en el punto de 
 ### RNF-006.3 — Contenedores portables
 El sistema debe poder levantarse en cualquier equipo con Docker y Docker Compose instalados,
 sin depender de configuración manual adicional (ver `docs/docker-guia.md` del bootcamp).
+
+### RNF-006.4 — Mapa sin proveedor propietario
+La selección geográfica usa Leaflet y OpenStreetMap sin exigir una clave de API propietaria.
+La interfaz conserva la atribución requerida y la búsqueda geográfica se ejecuta bajo acción
+explícita del usuario.

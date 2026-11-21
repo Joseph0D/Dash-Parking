@@ -12,8 +12,16 @@ fe/node_modules/
 fe/dist/
 fe/.env
 
+# Secretos (cualquier carpeta) - la plantilla .env.example sí se versiona
+.env
+.env.*
+!.env.example
+
 # General
 .DS_Store
 *.log
 .vscode/*
 !.vscode/settings.json
+
+
+.codegraph/

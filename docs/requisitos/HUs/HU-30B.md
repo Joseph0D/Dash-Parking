@@ -10,7 +10,9 @@
 
 - [ ] El usuario accede a su perfil, vehículos, reservas y pagos propios.
 - [ ] El operador accede al registro de ingreso, salida y pagos en efectivo.
-- [ ] Solo el administrador gestiona parqueaderos, zonas, espacios, tipos, tarifas, reportes y los datos de todos los usuarios.
+- [ ] El dueño gestiona parqueaderos, horarios, espacios y tarifas propios; nunca datos de otro dueño.
+- [ ] El operador solo opera en los parqueaderos que tiene asignados.
+- [ ] El administrador de plataforma accede a las funciones de plataforma y a los reportes globales.
 - [ ] El acceso no autorizado se rechaza con un mensaje y las opciones no permitidas no se muestran en el menú.
 
 ## Dependencias

@@ -4,11 +4,12 @@
 
 ## Historia de usuario
 
-> Como administrador, quiero asignar roles de usuario, operador y administrador, para definir qué puede hacer cada persona en la plataforma.
+> Como administrador de plataforma, quiero asignar los roles cliente, dueño, operador y administrador de plataforma, para definir qué puede hacer cada persona.
 
 ## Criterios de aceptación
 
-- [ ] Los usuarios nuevos se crean con el rol 'usuario'.
+- [ ] El autorregistro solo permite crear cuentas cliente o dueño.
+- [ ] Solo el administrador de plataforma puede asignar o cambiar roles privilegiados.
 - [ ] Solo el administrador puede cambiar el rol de otro usuario.
 - [ ] Cada usuario tiene un solo rol.
 - [ ] Siempre debe existir al menos un administrador.
@@ -19,8 +20,10 @@
 
 ## Pendientes por definir / notas técnicas
 
-Definir si un usuario puede tener varios roles.
+El operador conserva un alcance por parqueadero asignado; el dueño solo administra sus
+parqueaderos. No se permite autorregistro de operador ni administrador.
 
 ## Cambio respecto a la historia original
 
-Nueva: sale de dividir la HU-30. Se recomienda ubicarla al inicio del backlog, junto con HU-01 y HU-02.
+Se amplía el conjunto de roles y se prohíbe la asignación de roles privilegiados por autorregistro.
+La interfaz administrativa para cambiar roles debe validarse por separado.
