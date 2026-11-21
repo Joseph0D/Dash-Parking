@@ -1,6 +1,8 @@
 """Pruebas de reservas por parqueadero y rango horario."""
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy.exc import OperationalError
+
 from app.models.enums import UserRole, VehicleType
 from app.models.parking_lot import ParkingLot
 from app.models.parking_lot_schedule import ParkingLotSchedule
@@ -69,13 +71,16 @@ def create_vehicle(client, headers, plate):
     ).json()
 
 
-def reservation_payload(lot_id, vehicle_id, start, end):
-    return {
+def reservation_payload(lot_id, vehicle_id, start, end, spot_id=None):
+    payload = {
         "parking_lot_id": str(lot_id),
         "vehicle_id": vehicle_id,
         "start_time": start.isoformat(),
         "end_time": end.isoformat(),
     }
+    if spot_id is not None:
+        payload["spot_id"] = str(spot_id)
+    return payload
 
 
 def test_create_reservation_success(client, db_session):
@@ -131,6 +136,97 @@ def test_overlapping_reservation_is_rejected(client, db_session):
         headers=headers,
     )
     assert second.status_code == 409
+
+
+def test_database_deadlock_returns_reservation_conflict(client, db_session, monkeypatch):
+    create_user(db_session, "deadlock-client@example.com", role=UserRole.CLIENT)
+    lot = seed_lot(db_session)
+    headers = auth_headers(client, "deadlock-client@example.com")
+    vehicle = create_vehicle(client, headers, "DLOCK1")
+    start = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    class PostgresDeadlock(Exception):
+        sqlstate = "40P01"
+
+    def fail_commit():
+        raise OperationalError("reservation insert", {}, PostgresDeadlock("deadlock"))
+
+    monkeypatch.setattr(db_session, "commit", fail_commit)
+    response = client.post(
+        "/api/v1/reservations",
+        json=reservation_payload(lot.id, vehicle["id"], start, start + timedelta(hours=1)),
+        headers=headers,
+    )
+
+    assert response.status_code == 409
+    assert "reserva" in response.json()["detail"].lower()
+
+
+def test_reservation_can_target_a_selected_spot(client, db_session):
+    create_user(db_session, "selected-spot@example.com", role=UserRole.CLIENT)
+    lot = seed_lot(db_session)
+    selected_spot = ParkingSpot(
+        code="A-02",
+        zone="Carros",
+        vehicle_type=VehicleType.CAR,
+        parking_lot_id=lot.id,
+        parking_zone_id=db_session.query(ParkingZone).filter_by(parking_lot_id=lot.id).one().id,
+        vehicle_category_id=db_session.query(VehicleCategory).filter_by(code="car").one().id,
+        is_active=True,
+    )
+    db_session.add(selected_spot)
+    db_session.commit()
+    headers = auth_headers(client, "selected-spot@example.com")
+    vehicle = create_vehicle(client, headers, "SEL001")
+    start = datetime.now(timezone.utc) + timedelta(hours=1)
+    end = start + timedelta(hours=1)
+
+    response = client.post(
+        "/api/v1/reservations",
+        json=reservation_payload(lot.id, vehicle["id"], start, end, selected_spot.id),
+        headers=headers,
+    )
+
+    assert response.status_code == 201
+    assert response.json()["spot_id"] == str(selected_spot.id)
+
+
+def test_selected_spot_conflict_does_not_assign_a_different_spot(client, db_session):
+    create_user(db_session, "selected-conflict@example.com", role=UserRole.CLIENT)
+    lot = seed_lot(db_session)
+    zone = db_session.query(ParkingZone).filter_by(parking_lot_id=lot.id).one()
+    category = db_session.query(VehicleCategory).filter_by(code="car").one()
+    other_spot = ParkingSpot(
+        code="A-02",
+        zone="Carros",
+        vehicle_type=VehicleType.CAR,
+        parking_lot_id=lot.id,
+        parking_zone_id=zone.id,
+        vehicle_category_id=category.id,
+        is_active=True,
+    )
+    db_session.add(other_spot)
+    db_session.commit()
+    headers = auth_headers(client, "selected-conflict@example.com")
+    first_vehicle = create_vehicle(client, headers, "SEL002")
+    second_vehicle = create_vehicle(client, headers, "SEL003")
+    start = datetime.now(timezone.utc) + timedelta(hours=1)
+    end = start + timedelta(hours=1)
+
+    first = client.post(
+        "/api/v1/reservations",
+        json=reservation_payload(lot.id, first_vehicle["id"], start, end, other_spot.id),
+        headers=headers,
+    )
+    conflict = client.post(
+        "/api/v1/reservations",
+        json=reservation_payload(lot.id, second_vehicle["id"], start, end, other_spot.id),
+        headers=headers,
+    )
+
+    assert first.status_code == 201
+    assert first.json()["spot_id"] == str(other_spot.id)
+    assert conflict.status_code == 409
 
 
 def test_availability_is_reserved_only_for_the_matching_window(client, db_session):

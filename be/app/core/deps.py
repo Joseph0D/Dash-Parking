@@ -39,7 +39,13 @@ def get_current_user(
     if payload is None or "sub" not in payload:
         raise credentials_error
 
-    user = db.get(User, uuid.UUID(payload["sub"]))
+    try:
+        user_id = uuid.UUID(payload["sub"])
+    except ValueError:
+        # Token de la cuenta nueva (id entero): no sirve en los módulos anteriores.
+        raise credentials_error from None
+
+    user = db.get(User, user_id)
     if user is None:
         raise credentials_error
     return user

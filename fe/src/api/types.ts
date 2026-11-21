@@ -246,3 +246,126 @@ export interface SpacesResponse {
   available_count: number;
   spaces: Space[];
 }
+
+// ---------------------------------------------------------------------------------------------
+// Cuentas y reservas de la base nueva (be/app/schemas/accounts.py y reservas.py).
+// Los campos de reservas están en español porque siguen el contrato del informe.
+// ---------------------------------------------------------------------------------------------
+export type AccountRole = "cliente" | "dueno" | "administrador";
+
+export interface Account {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: AccountRole;
+}
+
+export interface AccountToken {
+  access_token: string;
+  token_type: string;
+  user: Account;
+}
+
+export interface RegisterAccountPayload {
+  first_name: string;
+  last_name: string;
+  document_id: string;
+  phone: string;
+  email: string;
+  password: string;
+}
+
+export interface AccountVehicle {
+  id: number;
+  plate: string;
+  vehicle_type_id: number;
+  vehicle_type_name: string;
+  brand: string | null;
+  model: string | null;
+  color: string | null;
+}
+
+export interface NewVehiclePayload {
+  plate: string;
+  vehicle_type_id: number;
+  brand?: string;
+  model?: string;
+  color?: string;
+}
+
+/** Valores exactos que acepta el backend (el efectivo es solo presencial). */
+export type OnlinePaymentMethod = "Tarjeta Credito" | "Tarjeta Debito" | "PSE" | "Nequi" | "Daviplata";
+
+export interface CreateReservationPayload {
+  id_estacionamiento: number;
+  id_vehiculo: number;
+  id_espacio: number | null;
+  fecha_inicio: string;
+  fecha_fin: string;
+  metodo_pago: OnlinePaymentMethod;
+}
+
+export interface ReservationDetail {
+  id_reserva: number;
+  id_estacionamiento: number;
+  nombre_parqueadero: string;
+  id_espacio: number;
+  numero_espacio: string;
+  zona: string;
+  id_vehiculo: number;
+  placa: string;
+  tipo_vehiculo: string;
+  cliente: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estado_reserva: "activa" | "en curso" | "vencida" | "finalizada" | "cancelada";
+  estado_espacio: "Reservado" | "Ocupado" | "Disponible";
+  metodo_pago: string | null;
+  monto_total: string | null;
+  estado_pago: string | null;
+  referencia_transaccion: string | null;
+  id_comprobante: string | null;
+  id_ticket: number | null;
+  fecha_ingreso: string | null;
+  fecha_salida: string | null;
+}
+
+export interface ReservationCreated {
+  status: string;
+  message: string;
+  code: number;
+  data: {
+    id_reserva: number;
+    id_espacio: number;
+    estado_espacio: string;
+    id_comprobante: string | null;
+    resumen: ReservationDetail;
+  };
+}
+
+export interface CancellationResult {
+  id_reserva: number;
+  estado_reserva: string;
+  monto_reembolsado: string;
+  message: string;
+}
+
+export interface ActiveTicket {
+  id_ticket: number;
+  id_reserva: number | null;
+  placa: string;
+  tipo_vehiculo: string;
+  numero_espacio: string;
+  zona: string;
+  nombre_parqueadero: string;
+  fecha_ingreso: string;
+  estado_ticket: string;
+}
+
+export interface ExitResult {
+  id_ticket: number;
+  estado_ticket: string;
+  fecha_salida: string;
+  message: string;
+}

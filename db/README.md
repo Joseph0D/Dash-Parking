@@ -180,3 +180,27 @@ Códigos de error (SQLSTATE) para mapear a HTTP: `23P01` espacio no disponible (
 - Los nombres de tablas y columnas están en español (decisión del equipo con la BD nueva), lo que
   se aparta de la regla "nomenclatura técnica en inglés" de `CODING_STANDARDS.md`: conviene
   dejarlo registrado como excepción.
+
+## Cuentas de demostración (solo desarrollo)
+
+`python -m app.scripts.seed_parking` (corre solo al levantar el backend con Docker Compose)
+completa los datos vacíos de la base nueva. Es idempotente y no falla si la base aún no está cargada.
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrador | `admin@dashparking.dev` | `Admin123!` |
+| Dueño (propietario del parqueadero 1) | `dueno@dashparking.dev` | `Dueno123!` |
+| Cliente (los 13 usuarios del dump, p. ej. `andres.gomez@correo.com`) | su correo | `Cliente123!` |
+
+Cámbialas en cualquier despliegue real (`DEMO_CLIENT_PASSWORD` permite cambiar la de clientes).
+
+## Ciclo del espacio y API (migración 003)
+
+Disponible → **Reservado** (`POST /api/v1/reservas/crear`, con pago simulado) → **Ocupado** (el
+dueño registra el ingreso: `POST /api/v1/reservas/{id}/ingreso`) → **Disponible**
+(`POST /api/v1/tickets/{id}/salida`). Cancelar (`POST /api/v1/reservas/{id}/cancelar`) solo se
+permite antes de que empiece la franja y reembolsa el pago (simulado).
+
+Se puede ingresar desde 15 minutos antes de la hora reservada. La reserva pasa a `finalizada`
+al **salir** (antes era al entrar), para que el resto de su franja siga ocupado mientras el
+vehículo está adentro.

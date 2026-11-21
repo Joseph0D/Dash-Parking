@@ -1,4 +1,5 @@
 """Schemas de reservas (RF-013)."""
+
 from __future__ import annotations
 
 import uuid
@@ -14,6 +15,7 @@ COLOMBIA_TZ = timezone(timedelta(hours=-5))
 class ReservationCreateRequest(BaseModel):
     vehicle_id: uuid.UUID
     parking_lot_id: uuid.UUID
+    spot_id: uuid.UUID | None = None
     start_time: datetime
     end_time: datetime
 

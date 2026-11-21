@@ -13,6 +13,7 @@ import type {
   AvailabilityResponse,
   ParkingLot,
   ParkingVehicleType,
+  Space,
   SpaceStatus,
   SpacesResponse,
   Vehicle,
@@ -21,6 +22,8 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import { MyReservations } from "../components/booking/MyReservations";
+import { ReservationModal } from "../components/booking/ReservationModal";
 import { addMinutes, nextFullHour, toApiDateTime, validateWindow } from "../utils/timeWindow";
 import { formatCurrency } from "../utils/formatCurrency";
 import "./SpotsPage.css";
@@ -44,7 +47,7 @@ const DURATION_PRESETS = [
 export function AvailabilityPage() {
   const [searchParams] = useSearchParams();
   const requestedLotId = searchParams.get("parkingLotId");
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const toast = useToast();
   const [lots, setLots] = useState<ParkingLot[]>([]);
   const [lotId, setLotId] = useState<string | null>(null);
@@ -59,9 +62,10 @@ export function AvailabilityPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState(false);
+  const [selectedSpace, setSelectedSpace] = useState<Space | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const hasLoadedAvailability = useRef(false);
-
+  // Se incrementa para volver a consultar la disponibilidad (después de reservar o de un cruce).
   const windowError = validateWindow(start, end);
   const selectedLot = lots.find((lot) => lot.id === lotId) ?? null;
 
@@ -204,9 +208,23 @@ export function AvailabilityPage() {
   return (
     <section className="espacios-section">
       <div className="section-header">
-        <h2>Disponibilidad por horario</h2>
-        <p>Elige el parqueadero y la franja; los cupos se actualizan automáticamente cada 5 segundos.</p>
+        <h2>Reserva tu espacio</h2>
+        <p>
+          Elige el parqueadero y la franja, y toca un espacio libre para reservarlo: solo queda
+          ocupado en el horario que elijas. La disponibilidad se actualiza cada 5 segundos.
+        </p>
       </div>
+
+      {user && (
+        <div className="session-bar">
+          <span>
+            Sesión de reservas: {user.name} {user.surname}
+          </span>
+          <button type="button" className="booking-link" onClick={logout}>
+            Salir
+          </button>
+        </div>
+      )}
 
       <Card className="availability-controls">
         <div className="availability-field">
@@ -357,16 +375,29 @@ export function AvailabilityPage() {
           </div>
 
           <div className="spots-grid">
-            {spaces.spaces.map((space) => (
-              <div
-                key={space.id}
-                className={`spot-cell spot-cell--${space.status}`}
-                title={`${space.code} · ${STATUS_LABEL[space.status]}`}
-              >
-                {space.code}
-                <span className="spot-zone">{STATUS_LABEL[space.status]}</span>
-              </div>
-            ))}
+            {spaces.spaces.map((space) =>
+              space.status === "available" ? (
+                <button
+                  key={space.id}
+                  type="button"
+                  className="spot-cell spot-cell--available spot-cell--pick"
+                  title={`Reservar ${space.code}`}
+                  onClick={() => setSelectedSpace(space)}
+                >
+                  {space.code}
+                  <span className="spot-zone">{STATUS_LABEL[space.status]}</span>
+                </button>
+              ) : (
+                <div
+                  key={space.id}
+                  className={`spot-cell spot-cell--${space.status}`}
+                  title={`${space.code} · ${STATUS_LABEL[space.status]}`}
+                >
+                  {space.code}
+                  <span className="spot-zone">{STATUS_LABEL[space.status]}</span>
+                </div>
+              ),
+            )}
           </div>
 
           <Card className="availability-booking">
@@ -411,6 +442,27 @@ export function AvailabilityPage() {
             )}
           </Card>
         </>
+      )}
+
+      {selectedSpace && selectedLot && selectedType && spaces && (
+        <ReservationModal
+          lot={selectedLot}
+          space={selectedSpace}
+          vehicleType={selectedType}
+          start={start}
+          end={end}
+          estimatedPrice={spaces.estimated_price}
+          onClose={() => setSelectedSpace(null)}
+          onConflict={() => setRefreshKey((key) => key + 1)}
+          onBooked={() => {
+            setSelectedSpace(null);
+            setRefreshKey((key) => key + 1);
+          }}
+        />
+      )}
+
+      {user && (
+        <MyReservations refreshKey={refreshKey} onChanged={() => setRefreshKey((key) => key + 1)} />
       )}
     </section>
   );

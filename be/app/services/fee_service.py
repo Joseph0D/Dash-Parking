@@ -12,10 +12,16 @@ from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
 
+def _as_utc(value: datetime) -> datetime:
+    if value.utcoffset() is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def elapsed_seconds(entry_time: datetime, reference_time: datetime | None = None) -> int:
     """Segundos transcurridos desde el ingreso hasta `reference_time` (o ahora)."""
-    now = reference_time or datetime.now(timezone.utc)
-    return max(0, int((now - entry_time).total_seconds()))
+    now = _as_utc(reference_time) if reference_time is not None else datetime.now(timezone.utc)
+    return max(0, int((now - _as_utc(entry_time)).total_seconds()))
 
 
 def billed_hours(seconds: int) -> int:
@@ -26,7 +32,7 @@ def billed_hours(seconds: int) -> int:
     quedó pendiente de aclarar en restricciones.md; se documenta aquí para que sea trivial
     ajustarla (ej. a fracción de 15 minutos) sin tocar el resto del flujo.
     """
-    if seconds <= 0:
+    if seconds < 0:
         return 0
     return max(1, math.ceil(seconds / 3600))
 

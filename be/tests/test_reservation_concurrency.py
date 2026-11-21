@@ -8,18 +8,21 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import create_engine, delete
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.models.enums import ReservationStatus, UserRole, VehicleType
+from app.models.enums import UserRole, VehicleType
 from app.models.parking_lot import ParkingLot
+from app.models.parking_lot_schedule import ParkingLotSchedule
 from app.models.parking_spot import ParkingSpot
 from app.models.parking_zone import ParkingZone
 from app.models.reservation import Reservation
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.vehicle_category import VehicleCategory
+from app.routers.reservations import create as create_reservation_endpoint
+from app.schemas.reservation import ReservationCreateRequest
 
 
 DATABASE_URL = os.getenv("RESERVATION_TEST_DATABASE_URL")
@@ -85,6 +88,14 @@ def test_concurrent_overlapping_reservations_cannot_claim_same_spot():
                     zone,
                     spot,
                     *[
+                        ParkingLotSchedule(
+                            parking_lot_id=lot_id,
+                            day_of_week=day,
+                            is_24_hours=True,
+                        )
+                        for day in range(7)
+                    ],
+                    *[
                         Vehicle(
                             id=vehicle_id,
                             plate=f"C{test_id}{index}",
@@ -102,37 +113,37 @@ def test_concurrent_overlapping_reservations_cannot_claim_same_spot():
         start = datetime.now(timezone.utc) + timedelta(days=2)
         end = start + timedelta(hours=2)
 
-        def reserve(vehicle_id: uuid.UUID) -> str:
+        def reserve(vehicle_id: uuid.UUID) -> int:
             with session_factory() as db:
-                db.add(
-                    Reservation(
-                        vehicle_id=vehicle_id,
-                        spot_id=spot_id,
-                        parking_lot_id=lot_id,
-                        vehicle_type=VehicleType.CAR,
-                        start_time=start,
-                        end_time=end,
-                        status=ReservationStatus.CONFIRMED,
-                    )
+                user = db.get(User, user_id)
+                payload = ReservationCreateRequest(
+                    parking_lot_id=lot_id,
+                    vehicle_id=vehicle_id,
+                    spot_id=spot_id,
+                    start_time=start,
+                    end_time=end,
                 )
                 barrier.wait(timeout=10)
                 try:
-                    db.commit()
-                    return "created"
-                except IntegrityError as exc:
-                    db.rollback()
-                    original = exc.orig
-                    return getattr(original, "sqlstate", None) or getattr(original, "pgcode", "unknown")
+                    create_reservation_endpoint(payload, user, db)
+                    return 201
+                except HTTPException as exc:
+                    return exc.status_code
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             outcomes = list(executor.map(reserve, vehicle_ids))
 
-        assert sorted(outcomes) == ["23P01", "created"]
+        assert sorted(outcomes) == [201, 409]
     finally:
         with Session(engine) as cleanup:
             cleanup.execute(delete(Reservation).where(Reservation.spot_id == spot_id))
             cleanup.execute(delete(ParkingSpot).where(ParkingSpot.id == spot_id))
             cleanup.execute(delete(ParkingZone).where(ParkingZone.id == zone_id))
+            cleanup.execute(
+                delete(ParkingLotSchedule).where(
+                    ParkingLotSchedule.parking_lot_id == lot_id
+                )
+            )
             cleanup.execute(delete(Vehicle).where(Vehicle.id.in_(vehicle_ids)))
             cleanup.execute(delete(ParkingLot).where(ParkingLot.id == lot_id))
             cleanup.execute(delete(User).where(User.id == user_id))

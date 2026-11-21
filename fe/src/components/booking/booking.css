@@ -1,0 +1,276 @@
+/* Estilos de la reserva en línea: ventana modal, formularios, comprobante, listas y tablas.
+   Usa solo los tokens de styles/tokens.css para verse igual en claro/oscuro. */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--color-text-strong);
+}
+
+.modal__title--ok {
+  color: var(--color-success-strong);
+}
+
+.modal__subtitle,
+.modal__note,
+.modal__session {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.modal__note {
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.receipt {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.summary-line span {
+  color: var(--color-text-muted);
+}
+
+.summary-line strong {
+  text-align: right;
+  color: var(--color-text-strong);
+}
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.booking-form__row {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.booking-form__row .form-field {
+  flex: 1 1 160px;
+}
+
+.booking-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--color-accent-strong);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.booking-link--danger {
+  color: var(--color-danger-strong);
+  margin-top: 0.5rem;
+}
+
+.pay-methods {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pay-methods legend {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  padding: 0 0.3rem;
+}
+
+.pay-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.pay-option input {
+  accent-color: var(--color-accent-strong);
+}
+
+.pay-option--on {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
+/* Celdas elegibles de la cuadrícula de disponibilidad */
+button.spot-cell--pick {
+  cursor: pointer;
+  font: inherit;
+}
+
+button.spot-cell--pick:hover,
+button.spot-cell--pick:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+}
+
+/* Reservas del cliente */
+.my-reservations {
+  margin-top: 2rem;
+}
+
+.my-reservations h3,
+.owner-section h3 {
+  margin: 0 0 0.8rem;
+  color: var(--color-text-strong);
+}
+
+.booking-empty {
+  color: var(--color-text-muted);
+}
+
+.reservation-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+}
+
+.reservation-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.reservation-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.status-badge--activa {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-strong);
+}
+
+.status-badge--en-curso {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-stronger);
+}
+
+.status-badge--finalizada {
+  background: var(--color-success-soft);
+  color: var(--color-success-strong);
+}
+
+.status-badge--cancelada,
+.status-badge--vencida {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-strong);
+}
+
+/* Barra de sesión y panel del dueño */
+.session-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.owner-section {
+  margin-top: 1.8rem;
+}
+
+.owner-table-wrap {
+  overflow-x: auto;
+}
+
+.owner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.owner-table th,
+.owner-table td {
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.owner-table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.owner-login {
+  max-width: 420px;
+  margin: 0 auto;
+}

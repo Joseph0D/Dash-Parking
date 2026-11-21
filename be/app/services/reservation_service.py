@@ -4,12 +4,14 @@ Qué: Orquesta la creación y cancelación de reservas de espacio (RF-013).
 Para qué: Centraliza la regla de no-solapamiento de reservas (RN-022).
 Impacto: Si falla, dos clientes podrían reservar el mismo espacio en el mismo rango horario.
 """
+
 from __future__ import annotations
 
+import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import or_, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.models.enums import ReservationStatus, SessionStatus
@@ -45,6 +47,7 @@ def create_reservation(
     vehicle: Vehicle,
     start_time: datetime,
     end_time: datetime,
+    requested_spot_id: uuid.UUID | None = None,
 ) -> Reservation:
     if start_time.tzinfo is None:
         start_time = start_time.replace(tzinfo=COLOMBIA_TZ)
@@ -59,7 +62,9 @@ def create_reservation(
     if start_time.astimezone(timezone.utc) < now:
         raise ReservationInThePastError("La fecha/hora de la reserva debe ser futura")
     if end_time <= start_time:
-        raise ReservationInThePastError("La hora de fin debe ser posterior a la hora de inicio")
+        raise ReservationInThePastError(
+            "La hora de fin debe ser posterior a la hora de inicio"
+        )
 
     start_utc = start_time.astimezone(timezone.utc)
     end_utc = end_time.astimezone(timezone.utc)
@@ -97,7 +102,9 @@ def create_reservation(
             ParkingSession.vehicle_id == vehicle.id,
             ParkingSession.status == SessionStatus.ACTIVE,
             ParkingSession.entry_time < end_utc,
-            or_(ParkingSession.exit_time.is_(None), ParkingSession.exit_time > start_utc),
+            or_(
+                ParkingSession.exit_time.is_(None), ParkingSession.exit_time > start_utc
+            ),
         )
     ).first()
     if active_session is not None:
@@ -105,15 +112,16 @@ def create_reservation(
             "El vehículo tiene una sesión activa que se cruza con ese horario"
         )
 
-    candidate_ids = db.execute(
-        select(ParkingSpot.id)
-        .where(
-            ParkingSpot.parking_lot_id == parking_lot.id,
-            ParkingSpot.vehicle_category_id == category.id,
-            ParkingSpot.is_active.is_(True),
-        )
-        .order_by(ParkingSpot.code)
-    ).scalars().all()
+    candidate_query = select(ParkingSpot.id).where(
+        ParkingSpot.parking_lot_id == parking_lot.id,
+        ParkingSpot.vehicle_category_id == category.id,
+        ParkingSpot.is_active.is_(True),
+    )
+    if requested_spot_id is not None:
+        candidate_query = candidate_query.where(ParkingSpot.id == requested_spot_id)
+    candidate_ids = (
+        db.execute(candidate_query.order_by(ParkingSpot.code)).scalars().all()
+    )
     for spot_id in candidate_ids:
         spot = db.execute(
             select(ParkingSpot)
@@ -138,7 +146,10 @@ def create_reservation(
                 ParkingSession.spot_id == spot.id,
                 ParkingSession.status == SessionStatus.ACTIVE,
                 ParkingSession.entry_time < end_utc,
-                or_(ParkingSession.exit_time.is_(None), ParkingSession.exit_time > start_utc),
+                or_(
+                    ParkingSession.exit_time.is_(None),
+                    ParkingSession.exit_time > start_utc,
+                ),
             )
         ).first()
         if overlapping_session is not None:
@@ -156,11 +167,13 @@ def create_reservation(
         db.add(reservation)
         try:
             db.commit()
-        except IntegrityError as exc:
+        except DBAPIError as exc:
             db.rollback()
             original = exc.orig
-            sqlstate = getattr(original, "sqlstate", None) or getattr(original, "pgcode", None)
-            if sqlstate == "23P01":
+            sqlstate = getattr(original, "sqlstate", None) or getattr(
+                original, "pgcode", None
+            )
+            if sqlstate in {"23P01", "40P01"}:
                 raise NoAvailableSpotForReservationError(
                     "El espacio o el vehículo ya tiene una reserva que se cruza con ese horario"
                 ) from exc

@@ -2,6 +2,7 @@
 Router: reservations.py
 Qué: Reservar y cancelar espacios de parqueo con tiempo de ocupación (RF-013).
 """
+
 from __future__ import annotations
 
 import uuid
@@ -30,7 +31,9 @@ from app.services.reservation_service import (
 router = APIRouter(prefix="/api/v1/reservations", tags=["reservations"])
 
 
-@router.post("", response_model=ReservationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=ReservationResponse, status_code=status.HTTP_201_CREATED
+)
 def create(
     payload: ReservationCreateRequest,
     current_user: User = Depends(get_current_user),
@@ -38,25 +41,40 @@ def create(
 ) -> ReservationResponse:
     vehicle = db.get(Vehicle, payload.vehicle_id)
     if vehicle is None or vehicle.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehículo no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Vehículo no encontrado"
+        )
     parking_lot = db.get(ParkingLot, payload.parking_lot_id)
     if parking_lot is None or not parking_lot.is_active:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parqueadero no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Parqueadero no encontrado"
+        )
 
     try:
         reservation = create_reservation(
-            db, parking_lot, vehicle, payload.start_time, payload.end_time
+            db,
+            parking_lot,
+            vehicle,
+            payload.start_time,
+            payload.end_time,
+            payload.spot_id,
         )
     except ReservationInThePastError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     except NoAvailableSpotForReservationError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
 
     return ReservationResponse.model_validate(reservation)
 
 
 @router.get("/me", response_model=list[ReservationResponse])
-def my_reservations(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[ReservationResponse]:
+def my_reservations(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[ReservationResponse]:
     reservations = (
         db.execute(
             select(Reservation)
@@ -82,18 +100,28 @@ def cancel(
 ) -> ReservationResponse:
     reservation = db.get(Reservation, reservation_id)
     if reservation is None or reservation.vehicle.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reserva no encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Reserva no encontrada"
+        )
     try:
         return ReservationResponse.model_validate(cancel_reservation(db, reservation))
     except ReservationCannotBeCancelledError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
 
 
 @router.get("", response_model=list[ReservationResponse])
-def list_reservations(_staff: User = Depends(require_staff), db: Session = Depends(get_db)):
-    reservations = db.execute(
-        select(Reservation)
-        .options(selectinload(Reservation.parking_lot))
-        .order_by(Reservation.start_time.desc())
-    ).scalars().all()
+def list_reservations(
+    _staff: User = Depends(require_staff), db: Session = Depends(get_db)
+):
+    reservations = (
+        db.execute(
+            select(Reservation)
+            .options(selectinload(Reservation.parking_lot))
+            .order_by(Reservation.start_time.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [ReservationResponse.model_validate(r) for r in reservations]
