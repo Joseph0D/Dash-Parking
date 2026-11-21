@@ -47,6 +47,7 @@ services:
       - ./be/app:/app/app
     command: >
       sh -c "python -m app.scripts.seed &&
+             python -m app.scripts.seed_parking &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   frontend:

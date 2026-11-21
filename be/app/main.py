@@ -17,11 +17,13 @@ from app.config import settings
 from app.database import Base, engine
 from app.models import *  # noqa: F401,F403  — registra todos los modelos antes de create_all
 from app.routers import (
+    accounts,
     auth,
     availability,
     payments,
     rates,
     reports,
+    reservas,
     reservations,
     sessions,
     spots,
@@ -51,6 +53,8 @@ def on_startup() -> None:
 app.include_router(auth.router)
 app.include_router(vehicles.router)
 app.include_router(availability.router)
+app.include_router(accounts.router)
+app.include_router(reservas.router)
 app.include_router(spots.router)
 app.include_router(rates.router)
 app.include_router(sessions.router)
