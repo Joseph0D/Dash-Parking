@@ -16,6 +16,8 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
+from app.models.enums import VehicleType
+from app.models.vehicle_category import VehicleCategory
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
@@ -31,6 +33,13 @@ def db_session():
     Base.metadata.create_all(bind=engine)
 
     session = TestingSessionLocal()
+    session.add_all(
+        [
+            VehicleCategory(code=vehicle_type.value, name=vehicle_type.value.title(), is_active=True)
+            for vehicle_type in VehicleType
+        ]
+    )
+    session.commit()
     try:
         yield session
     finally:

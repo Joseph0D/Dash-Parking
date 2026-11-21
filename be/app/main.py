@@ -19,6 +19,7 @@ from app.models import *  # noqa: F401,F403  — registra todos los modelos ante
 from app.routers import (
     auth,
     availability,
+    owner_parking_lots,
     payments,
     rates,
     reports,
@@ -51,6 +52,7 @@ def on_startup() -> None:
 app.include_router(auth.router)
 app.include_router(vehicles.router)
 app.include_router(availability.router)
+app.include_router(owner_parking_lots.router)
 app.include_router(spots.router)
 app.include_router(rates.router)
 app.include_router(sessions.router)

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
 from pydantic import BaseModel
+
+from app.models.enums import VehicleType
 
 
 class SpaceStatus(StrEnum):
@@ -19,25 +22,29 @@ class SpaceStatus(StrEnum):
 
 
 class ParkingLotResponse(BaseModel):
-    id: int
+    id: uuid.UUID
     name: str
     identification: str
     address: str
-    phone: str
+    phone: str | None
     total_capacity: int
+    latitude: float | None
+    longitude: float | None
+    schedule_configured: bool
 
 
 class VehicleTypeResponse(BaseModel):
-    id: int
+    id: uuid.UUID
+    code: VehicleType
     name: str
     description: str | None
     price_per_hour: Decimal | None  # None si el parqueadero no tiene tarifa vigente para el tipo
 
 
 class ZoneAvailability(BaseModel):
-    zone_id: int
+    zone_id: uuid.UUID
     zone_name: str
-    vehicle_type_id: int
+    vehicle_type_id: uuid.UUID
     capacity: int
     available: int
     reserved: int
@@ -45,24 +52,24 @@ class ZoneAvailability(BaseModel):
 
 
 class AvailabilityResponse(BaseModel):
-    parking_lot_id: int
+    parking_lot_id: uuid.UUID
     start: datetime
     end: datetime
     zones: list[ZoneAvailability]
 
 
 class SpaceResponse(BaseModel):
-    id: int
+    id: uuid.UUID
     code: str
-    zone_id: int
+    zone_id: uuid.UUID
     zone_name: str
-    space_type_id: int
+    space_type_id: uuid.UUID | None
     status: SpaceStatus
 
 
 class SpacesResponse(BaseModel):
-    parking_lot_id: int
-    vehicle_type_id: int
+    parking_lot_id: uuid.UUID
+    vehicle_type_id: uuid.UUID
     start: datetime
     end: datetime
     estimated_price: Decimal | None

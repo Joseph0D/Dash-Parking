@@ -6,6 +6,7 @@ import type { Rate } from "../api/types";
 import { VEHICLE_TYPE_ICON, VEHICLE_TYPE_LABEL } from "../hooks/useVehicleLabels";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Card } from "../components/ui/Card";
+import { ParkingMap } from "../components/ParkingMap";
 import "./LandingPage.css";
 
 export function LandingPage() {
@@ -30,12 +31,14 @@ export function LandingPage() {
             <Link to="/registro" className="btn btn--primary">
               Crear cuenta
             </Link>
-            <Link to="/espacios" className="btn btn--ghost" style={{ color: "#fff", borderColor: "#475569" }}>
+            <Link to="/disponibilidad" className="btn btn--ghost" style={{ color: "#fff", borderColor: "#475569" }}>
               Ver disponibilidad
             </Link>
           </div>
         </div>
       </section>
+
+      <ParkingMap />
 
       <section className="features-section">
         <Card className="feature-card">

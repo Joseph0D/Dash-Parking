@@ -3,12 +3,12 @@
 ## Identificación
 | Campo | Valor |
 |---|---|
-| **ID** | RF-017 · **Módulo** | Administrativo · **Estado** | Implementado |
-| **HU asociada** | HU-017 (extiende RF-009) |
+| **ID** | RF-017 · **Módulo** | Administrativo · **Estado** | Implementado para administrador; panel diario de dueño separado en RF-020 |
+| **HU asociada** | HU-31 |
 
 ## Descripción
-Expone un endpoint de métricas agregadas (ganancia total, número de sesiones, ocupación) que
-acepta filtros combinables por tipo de vehículo y por rango de fechas.
+Expone métricas agregadas para el administrador de plataforma con filtros combinables. Los
+dueños usan RF-020, que verifica propiedad y limita los datos a sus parqueaderos.
 
 ## Entradas
 | Campo | Tipo | Obligatorio | Validaciones |
@@ -31,8 +31,10 @@ acepta filtros combinables por tipo de vehículo y por rango de fechas.
 ## Endpoints asociados
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
-| GET | `/api/v1/reports/dashboard?vehicle_type=&start_date=&end_date=` | Sí (solo admin) | Métricas agregadas y filtrables |
+| GET | `/api/v1/reports/dashboard?vehicle_type=&start_date=&end_date=` | Sí (solo administrador de plataforma) | Métricas agregadas y filtrables |
 
 ## Reglas de negocio
 - RN-029: Solo se cuentan pagos en estado `paid` — sesiones activas sin pagar no suman a la ganancia.
 - RN-030: Ausencia de un filtro implica "sin restricción" en ese campo (no excluye datos).
+- RNF-001.7: El dashboard global está limitado al administrador de plataforma; el dashboard de
+  dueño no puede ampliar su alcance cambiando el identificador de parqueadero (RF-020).

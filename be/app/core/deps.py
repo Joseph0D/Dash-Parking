@@ -61,3 +61,4 @@ def require_role(*allowed_roles: UserRole):
 
 require_admin = require_role(UserRole.ADMIN)
 require_staff = require_role(UserRole.ADMIN, UserRole.OPERATOR)
+require_owner = require_role(UserRole.OWNER)

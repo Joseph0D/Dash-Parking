@@ -22,6 +22,9 @@ services:
       # Carga dash_parking_v2 la primera vez que se crea el volumen (ver db/README.md)
       - ./db/init:/docker-entrypoint-initdb.d:ro
       - ./db/dash_parking_complete.sql:/db/dash_parking_complete.sql:ro
+      - ./db/migrations/003_bogota_parking_map.sql:/db/003_bogota_parking_map.sql:ro
+      - ./db/migrations/004_uuid_parking_schema.sql:/db/004_uuid_parking_schema.sql:ro
+      - ./db/migrations/006_password_reset.sql:/db/006_password_reset.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dash_parking -d dash_parking"]
       interval: 5s

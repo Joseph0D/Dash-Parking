@@ -41,3 +41,12 @@ El diseño de datos debe soportar un volumen creciente de historial sin degradar
 ### RNF-005.5 — Posibilidad de agregar nuevos módulos
 La arquitectura por capas (routers/services/models) permite agregar nuevos módulos (ej. reservas,
 membresías) sin reescribir los existentes.
+
+### RNF-005.6 — Trazabilidad verificable
+Cada HU vigente se vincula con uno o más RF y con los módulos y pruebas que la implementan. Los
+cambios de contrato y esquema se documentan junto con sus migraciones; una casilla de aceptación
+no se marca como completada sin evidencia de prueba.
+
+### RNF-005.7 — Fuente canónica de datos
+La base PostgreSQL `dash_parking` con UUID es la fuente de escritura y lectura de la aplicación.
+`dash_parking_v2` se conserva como respaldo de transición y no debe recibir nuevas escrituras.

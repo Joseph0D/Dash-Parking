@@ -21,7 +21,9 @@ export function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      navigate(user.role === "client" ? "/cuenta" : "/admin");
+      navigate(
+        user.role === "client" ? "/cuenta" : user.role === "owner" ? "/owner" : "/admin",
+      );
     } catch (err) {
       // CA-012.2: mensaje de error genérico, tal como lo entrega el backend (RN-020)
       setError(getErrorMessage(err));
@@ -68,6 +70,9 @@ export function LoginPage() {
 
         <p className="auth-switch">
           ¿No tienes cuenta? <Link to="/registro">Crear una cuenta</Link>
+        </p>
+        <p className="auth-switch">
+          <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
         </p>
       </Card>
     </div>

@@ -6,3 +6,4 @@
 set -e
 createdb -U "$POSTGRES_USER" dash_parking_v2
 psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d dash_parking_v2 -f /db/dash_parking_complete.sql
+psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d dash_parking_v2 -f /db/003_bogota_parking_map.sql

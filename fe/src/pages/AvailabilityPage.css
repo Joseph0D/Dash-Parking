@@ -70,6 +70,25 @@
   margin-bottom: 1rem;
 }
 
+.availability-booking {
+  margin-top: 1.5rem;
+}
+
+.availability-booking h3 {
+  margin: 0 0 0.8rem;
+}
+
+.availability-booking-row {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.availability-booking-row .form-field {
+  flex: 1 1 240px;
+}
+
 .zone-list {
   display: flex;
   gap: 0.8rem;

@@ -1,8 +1,8 @@
-# Base de datos — Dash Parking (esquema en español)
+# Base de datos — Dash Parking
 
-> **Estado:** el backend (`be/`) todavía usa el esquema anterior (tablas en inglés, IDs UUID).
-> Mientras no se migre, esta base debe vivir en una base **separada** (`dash_parking_v2`)
-> para no mezclarse con las tablas que crea `python -m app.scripts.seed`.
+> **Estado de transición:** la base `dash_parking` (SQLAlchemy/UUID) es la fuente canónica para
+> cuentas, el catálogo, la disponibilidad y las nuevas reservas. `dash_parking_v2` se conserva
+> intacta como respaldo. No elimines ninguna de las dos bases.
 
 ## Archivos
 
@@ -10,15 +10,94 @@
 |---|---|
 | `migrations/001_fix_missing_fields_and_integration.sql` | Campos vacíos/faltantes + roles, comprobante, pago de reservas |
 | `migrations/002_time_based_reservations.sql` | Reservas por franja horaria (requiere la 001) |
+| `migrations/003_bogota_parking_map.sql` | Ubicaciones demo de Bogotá, coordenadas y espacios/tarifas para disponibilidad |
+| `migrations/004_uuid_parking_schema.sql` | Esquema de parqueaderos, roles, horarios, categorías y tarifas en la base UUID |
+| `migrations/005_uuid_reservation_constraints.sql` | No-solapamiento por espacio y vehículo para reservas UUID |
+| `migrations/006_password_reset.sql` | Tokens hasheados y registro de límites de recuperación de contraseña |
+| `be/app/scripts/migrate_parking_catalog.py` | Simulación/importación idempotente del catálogo v2 a la base UUID |
 | `tests/time_based_reservations_test.sql` | Pruebas (corren en una transacción y hacen `ROLLBACK`) |
+| `tests/uuid_reservation_constraints_test.sql` | Prueba transaccional de las restricciones de reservas UUID |
 | `dash_parking_complete.sql` | Estado final listo para una base nueva (dump original + 001 + 002) |
 
 ## Opción A — con Docker Compose (automático)
 
 `docker compose up` crea `dash_parking_v2` y carga `dash_parking_complete.sql` mediante
-`db/init/01-create-parking-v2.sh`. **Solo ocurre cuando el volumen está vacío.** Si ya tienes el
+`db/init/01-create-parking-v2.sh`, que luego aplica `migrations/003_bogota_parking_map.sql`.
+**Solo ocurre cuando el volumen está vacío.** Si ya tienes el
 volumen de antes, tienes dos caminos: `docker compose down -v` (borra los datos del esquema
 anterior) o cargarla a mano como en la opción B-bis.
+
+Para una base ya creada, ejecutar la migración 003 (es repetible):
+
+```bash
+docker exec -i dash-parking-db psql -U dash_parking -d dash_parking_v2 -v ON_ERROR_STOP=1 < db/migrations/003_bogota_parking_map.sql
+```
+
+Los parqueaderos nuevos son ubicaciones ficticias para demostración; su disponibilidad sí se
+consulta desde los espacios, reservas y tickets de esta base de datos.
+
+## Migración del catálogo a la base UUID
+
+La migración 004 es aditiva y repetible. Primero respalda ambas bases; por ejemplo, en PowerShell:
+
+```powershell
+docker exec dash-parking-db pg_dump -U dash_parking -Fc -f /tmp/dash_parking.dump dash_parking
+docker cp dash-parking-db:/tmp/dash_parking.dump "$env:TEMP\dash_parking-backup.dump"
+docker exec dash-parking-db pg_dump -U dash_parking -d dash_parking_v2 -Fc -f /tmp/dash_parking_v2.dump
+docker cp dash-parking-db:/tmp/dash_parking_v2.dump "$env:TEMP\dash-parking-v2-backup.dump"
+```
+
+Aplica el esquema a `dash_parking` y simula la importación antes de confirmarla:
+
+```powershell
+docker exec dash-parking-db psql -U dash_parking -d dash_parking -v ON_ERROR_STOP=1 -f /db/004_uuid_parking_schema.sql
+docker exec dash-parking-backend python -m app.scripts.migrate_parking_catalog
+docker exec dash-parking-backend python -m app.scripts.migrate_parking_catalog --apply
+```
+
+La importación conserva los IDs numéricos de origen en columnas `legacy_id`, crea IDs UUID,
+asocia espacios, zonas, categorías y tarifas, y no asigna dueño a registros cuyo usuario legado
+no puede vincularse con una cuenta UUID. El catálogo de camiones queda disponible para nuevas
+configuraciones. En el conjunto de demostración actual se esperan 4 parqueaderos, 5 categorías
+heredadas, 6 tipos de espacio, 20 zonas, 689 espacios y 25 tarifas; el script informa los conteos
+reales antes de importar.
+
+Esta fase **no copia** usuarios, vehículos, reservas, tickets ni pagos de v2: sus identidades no
+tienen una correspondencia segura con las cuentas UUID. La base v2 no se modifica y sigue siendo
+el respaldo de las operaciones legadas. No hay un rollback destructivo: si la simulación reporta
+conflictos, corrige el mapeo antes de `--apply`;
+los datos de origen permanecen intactos.
+
+La migración 005 agrega restricciones PostgreSQL de exclusión por espacio y vehículo sobre rangos
+`[inicio, fin)`. Antes de aplicarla revisa y detiene la migración si encuentra reservas confirmadas
+solapadas o rangos inválidos. Requiere permiso para instalar `btree_gist`:
+
+```powershell
+docker cp db\migrations\005_uuid_reservation_constraints.sql dash-parking-db:/tmp/005_uuid_reservation_constraints.sql
+docker exec dash-parking-db psql -U dash_parking -d dash_parking -v ON_ERROR_STOP=1 -f /tmp/005_uuid_reservation_constraints.sql
+docker cp db\tests\uuid_reservation_constraints_test.sql dash-parking-db:/tmp/uuid_reservation_constraints_test.sql
+docker exec dash-parking-db psql -U dash_parking -d dash_parking -v ON_ERROR_STOP=1 -f /tmp/uuid_reservation_constraints_test.sql
+```
+
+La migración 006 agrega las tablas para tokens de recuperación de un solo uso y límites por correo
+e IP. Los correos se envían por SMTP con configuración exclusivamente en `be/.env` (ver
+`be/.env.example`); configura también `FRONTEND_BASE_URL` para que el enlace del correo apunte al
+frontend correspondiente:
+
+```powershell
+docker cp db\migrations\006_password_reset.sql dash-parking-db:/tmp/006_password_reset.sql
+docker exec dash-parking-db psql -U dash_parking -d dash_parking -v ON_ERROR_STOP=1 -f /tmp/006_password_reset.sql
+```
+
+Los tokens se guardan como SHA-256, vencen a los 30 minutos y las solicitudes excedentes reciben
+la misma respuesta genérica que las solicitudes aceptadas (máximo 3 por correo y 10 por IP en una
+hora). Si SMTP no está configurado, el endpoint responde `503` de forma consistente para todas las
+direcciones; no se revela si una cuenta existe.
+
+Los horarios semanales se interpretan con `day_of_week` de lunes (0) a domingo (6), en hora de
+Bogotá. Para reservar se requiere una fila para cada día; un día cerrado debe registrarse
+explícitamente. Los parqueaderos heredados sin horarios permiten consultar ocupación, pero no
+aceptan reservas hasta que se configure el horario. Las franjas pueden exceder 24 horas.
 
 ## Opción B-bis — base nueva a mano
 

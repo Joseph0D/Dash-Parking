@@ -25,8 +25,14 @@ from app.services.parking_service import (
     get_active_session_for_plate,
     register_entry,
 )
+from app.services.qr_service import InvalidVehicleQRTokenError, validate_vehicle_qr
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
+
+
+class VehicleQREntryRequest(BaseModel):
+    token: str
 
 
 def _to_detail(db: Session, session: ParkingSession) -> SessionDetailResponse:
@@ -62,6 +68,25 @@ def entry(
     except NoAvailableSpotError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
+    return _to_detail(db, session)
+
+
+@router.post("/entry/qr", response_model=SessionDetailResponse, status_code=status.HTTP_201_CREATED)
+def entry_by_vehicle_qr(
+    payload: VehicleQREntryRequest,
+    _staff: User = Depends(require_staff),
+    db: Session = Depends(get_db),
+) -> SessionDetailResponse:
+    try:
+        vehicle = validate_vehicle_qr(db, payload.token)
+    except InvalidVehicleQRTokenError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    try:
+        session = register_entry(db, vehicle)
+    except VehicleAlreadyInsideError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except NoAvailableSpotError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     return _to_detail(db, session)
 
 

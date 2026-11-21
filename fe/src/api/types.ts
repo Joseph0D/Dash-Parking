@@ -3,8 +3,8 @@
  * Mantener sincronizado manualmente con be/app/schemas/*.py y be/app/models/enums.py.
  */
 
-export type VehicleType = "car" | "motorcycle" | "bicycle";
-export type UserRole = "client" | "operator" | "admin";
+export type VehicleType = "car" | "motorcycle" | "bicycle" | "electric_motorcycle" | "scooter" | "truck";
+export type UserRole = "client" | "operator" | "owner" | "admin";
 export type SpotStatus = "available" | "occupied" | "reserved";
 export type SessionStatus = "active" | "completed";
 export type ReservationStatus = "confirmed" | "cancelled" | "completed";
@@ -14,6 +14,10 @@ export type PaymentStatus = "pending" | "paid" | "rejected";
 export interface User {
   id: string;
   name: string;
+  surname: string | null;
+  document_type: string | null;
+  document_number: string | null;
+  phone: string | null;
   email: string;
   role: UserRole;
 }
@@ -26,9 +30,12 @@ export interface AuthResponse {
 
 export interface Vehicle {
   id: string;
-  plate: string;
+  plate: string | null;
   vehicle_type: VehicleType;
+  vehicle_category_id: string | null;
+  brand: string | null;
   model: string | null;
+  color: string | null;
   owner_id: string;
   created_at: string;
 }
@@ -74,6 +81,8 @@ export interface Reservation {
   id: string;
   vehicle_id: string;
   spot_id: string;
+  parking_lot_id: string | null;
+  parking_lot_name: string | null;
   vehicle_type: VehicleType;
   start_time: string;
   end_time: string;
@@ -93,6 +102,13 @@ export interface QRPass {
   token: string;
   qr_image_base64: string;
   session_id: string;
+}
+
+export interface VehicleQRPass {
+  token: string;
+  qr_image_base64: string;
+  vehicle_id: string;
+  plate: string | null;
 }
 
 export interface QRValidation {
@@ -118,25 +134,87 @@ export interface DashboardData {
 export type SpaceStatus = "available" | "reserved" | "occupied" | "maintenance";
 
 export interface ParkingLot {
-  id: number;
+  id: string;
   name: string;
   identification: string;
   address: string;
-  phone: string;
+  phone: string | null;
   total_capacity: number;
+  latitude: number | null;
+  longitude: number | null;
+  schedule_configured: boolean;
+}
+
+export interface ParkingSchedule {
+  day_of_week: number;
+  opens_at: string | null;
+  closes_at: string | null;
+  is_closed: boolean;
+  is_24_hours: boolean;
+}
+
+export interface VehicleCategory {
+  id: string;
+  code: VehicleType;
+  name: string;
+  description: string | null;
+}
+
+export interface OwnerInventoryItem {
+  vehicle_category_id: string;
+  code: VehicleType;
+  name: string;
+  space_count: number;
+  price_per_minute: string | null;
+  price_per_day: string | null;
+  price_per_month: string | null;
+}
+
+export interface OwnerParkingLot extends ParkingLot {
+  is_active: boolean;
+  schedules: ParkingSchedule[];
+  inventory: OwnerInventoryItem[];
+}
+
+export interface OwnerParkingLotDashboard {
+  report_date: string;
+  reservation_count: number;
+  daily_reservations: {
+    id: string;
+    plate: string | null;
+    vehicle_type: VehicleType;
+    start_time: string;
+    end_time: string;
+    status: ReservationStatus;
+    spot_code: string;
+  }[];
+  reservations_by_vehicle_type: { vehicle_type: VehicleType; count: number }[];
+  occupancy_by_vehicle_type: { vehicle_type: VehicleType; count: number }[];
+  income_today: string;
+}
+
+export type ParkingScheduleInput = ParkingSchedule;
+
+export interface OwnerInventoryInput {
+  vehicle_category_id: string;
+  space_count: number;
+  price_per_minute: string;
+  price_per_day: string | null;
+  price_per_month: string | null;
 }
 
 export interface ParkingVehicleType {
-  id: number;
+  id: string;
+  code: VehicleType;
   name: string;
   description: string | null;
   price_per_hour: string | null;
 }
 
 export interface ZoneAvailability {
-  zone_id: number;
+  zone_id: string;
   zone_name: string;
-  vehicle_type_id: number;
+  vehicle_type_id: string;
   capacity: number;
   available: number;
   reserved: number;
@@ -144,24 +222,24 @@ export interface ZoneAvailability {
 }
 
 export interface AvailabilityResponse {
-  parking_lot_id: number;
+  parking_lot_id: string;
   start: string;
   end: string;
   zones: ZoneAvailability[];
 }
 
 export interface Space {
-  id: number;
+  id: string;
   code: string;
-  zone_id: number;
+  zone_id: string;
   zone_name: string;
-  space_type_id: number;
+  space_type_id: string | null;
   status: SpaceStatus;
 }
 
 export interface SpacesResponse {
-  parking_lot_id: number;
-  vehicle_type_id: number;
+  parking_lot_id: string;
+  vehicle_type_id: string;
   start: string;
   end: string;
   estimated_price: string | null;

@@ -24,12 +24,12 @@ export function listParkingLots(): Promise<ParkingLot[]> {
   return apiRequest<ParkingLot[]>(BASE, { auth: false });
 }
 
-export function listVehicleTypes(parkingLotId: number): Promise<ParkingVehicleType[]> {
+export function listVehicleTypes(parkingLotId: string): Promise<ParkingVehicleType[]> {
   return apiRequest<ParkingVehicleType[]>(`${BASE}/${parkingLotId}/vehicle-types`, { auth: false });
 }
 
 export function getAvailability(
-  parkingLotId: number,
+  parkingLotId: string,
   start: string,
   end: string,
 ): Promise<AvailabilityResponse> {
@@ -40,8 +40,8 @@ export function getAvailability(
 }
 
 export function getSpaces(
-  parkingLotId: number,
-  vehicleTypeId: number,
+  parkingLotId: string,
+  vehicleTypeId: string,
   start: string,
   end: string,
 ): Promise<SpacesResponse> {

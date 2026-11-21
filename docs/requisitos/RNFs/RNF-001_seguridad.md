@@ -16,7 +16,7 @@
 | **Nombre**    | Seguridad                          |
 | **Categoría** | Seguridad de la información        |
 | **Prioridad** | Crítica                             |
-| **Estado**    | Planificado (Sprint 2)               |
+| **Estado**    | Parcial; base implementada y criterios adicionales pendientes de validación |
 
 ---
 
@@ -44,5 +44,20 @@ Toda credencial sensible (claves, cadenas de conexión) vive en `.env`, no versi
 `.env.example` como plantilla.
 
 ### RNF-001.7 — Control de permisos por rol
-Cada endpoint sensible valida explícitamente el rol requerido (administrador/operario), no solo
-la autenticación.
+Cada endpoint sensible valida el rol y el alcance del recurso en el backend. Los roles incluyen
+cliente, dueño, operador y administrador de plataforma. Un dueño solo puede consultar o modificar
+parqueaderos de su propiedad; un operador solo los parqueaderos que tenga asignados.
+
+### RNF-001.8 — Restablecimiento seguro de contraseña
+Los tokens de recuperación se generan aleatoriamente, se almacenan solo como hash, tienen un solo
+uso y vencen en 30 minutos. El endpoint no revela si una cuenta existe y limita solicitudes a
+tres por correo y diez por IP en una ventana móvil de una hora.
+
+### RNF-001.9 — Protección de secretos y enlaces
+Las credenciales SMTP y de base de datos se guardan solo en variables de entorno no versionadas.
+Los enlaces de recuperación se generan con la URL configurada del frontend y se sirven mediante
+HTTPS en producción.
+
+### RNF-001.10 — Minimización de datos en registros
+Los logs no incluyen contraseñas, tokens de recuperación, claves SMTP ni datos personales que no
+sean necesarios para diagnosticar el servicio.

@@ -16,10 +16,49 @@ from sqlalchemy.orm import Session
 
 from app.models.parking_session import ParkingSession
 from app.models.qr_token import QRToken
+from app.models.vehicle import Vehicle
+from app.models.vehicle_qr_token import VehicleQRToken
 
 
 class InvalidQRTokenError(Exception):
     """El token no existe, ya fue usado, o la sesión ya no está activa (RN-026)."""
+
+
+class InvalidVehicleQRTokenError(Exception):
+    """El QR permanente no corresponde a un vehículo registrado."""
+
+
+def get_or_create_vehicle_qr(db: Session, vehicle: Vehicle) -> tuple[str, str]:
+    qr_token = db.execute(
+        select(VehicleQRToken).where(VehicleQRToken.vehicle_id == vehicle.id)
+    ).scalar_one_or_none()
+    if qr_token is None:
+        qr_token = VehicleQRToken(
+            vehicle_id=vehicle.id,
+            token=secrets.token_urlsafe(24),
+        )
+        db.add(qr_token)
+        db.commit()
+        db.refresh(qr_token)
+
+    qr_image = qrcode.make(qr_token.token)
+    buffer = BytesIO()
+    qr_image.save(buffer, format="PNG")
+    image_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+    return qr_token.token, image_base64
+
+
+def validate_vehicle_qr(db: Session, token_value: str) -> Vehicle:
+    qr_token = db.execute(
+        select(VehicleQRToken).where(VehicleQRToken.token == token_value)
+    ).scalar_one_or_none()
+    if qr_token is None:
+        raise InvalidVehicleQRTokenError("Código QR de vehículo inválido")
+
+    vehicle = db.get(Vehicle, qr_token.vehicle_id)
+    if vehicle is None:
+        raise InvalidVehicleQRTokenError("El vehículo asociado al QR ya no existe")
+    return vehicle
 
 
 def generate_qr_pass(db: Session, session: ParkingSession) -> tuple[str, str]:

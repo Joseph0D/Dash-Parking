@@ -5,6 +5,10 @@ export function registerEntry(plate: string, vehicle_type: VehicleType): Promise
   return apiRequest<SessionDetail>("/api/v1/sessions/entry", { method: "POST", body: { plate, vehicle_type } });
 }
 
+export function registerEntryByQr(token: string): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>("/api/v1/sessions/entry/qr", { method: "POST", body: { token } });
+}
+
 export function listActiveSessions(): Promise<SessionDetail[]> {
   return apiRequest<SessionDetail[]>("/api/v1/sessions/active");
 }

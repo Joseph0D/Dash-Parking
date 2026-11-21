@@ -1,6 +1,6 @@
 """
 Módulo: user.py (modelo)
-Qué: Modelo ORM de usuarios (clientes, operarios, administradores).
+Qué: Modelo ORM de usuarios (clientes, operarios, dueños y administradores).
 Para qué: Sustento de RF-012 (autenticación por rol) y RF-016 (autoregistro de clientes).
 Impacto: Es la raíz de todo el control de acceso — un error aquí compromete la seguridad
          de tarifas, reportes y eliminación de registros (RNF-001).
@@ -23,9 +23,19 @@ class User(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
+    surname: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    document_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    document_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="user_role"), nullable=False, default=UserRole.CLIENT)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     vehicles: Mapped[list["Vehicle"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    parking_lots: Mapped[list["ParkingLot"]] = relationship(back_populates="owner")
+    parking_memberships: Mapped[list["ParkingLotMember"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        foreign_keys="ParkingLotMember.user_id",
+    )

@@ -41,6 +41,14 @@ externos, salvo necesidad futura documentada.
 Las contraseñas se hashean exclusivamente con **bcrypt**. No se permiten otros algoritmos (MD5,
 SHA-256 sin salt, etc.).
 
+### RT-006 — Fuente canónica de datos
+La aplicación usa `dash_parking` con UUID como fuente canónica. `dash_parking_v2` se conserva
+como respaldo de transición y no recibe nuevas escrituras.
+
+### RT-007 — Mapas
+La cartografía usa Leaflet/OpenStreetMap sin exigir una clave propietaria y conserva la atribución
+del proveedor de mapas.
+
 ---
 
 ## 2. Restricciones de Herramientas y Entorno
@@ -86,6 +94,10 @@ funcionalidad debe mantenerse trazable al informe de diseño original (ver `docs
 no se agrega alcance no sustentado en ese informe sin dejarlo explícito como pendiente de
 aclarar.
 
+Los requisitos adicionales solicitados por el usuario se identifican en la
+[matriz de trazabilidad](matriz-trazabilidad.md); las historias futuras no se consideran
+implementadas por estar documentadas.
+
 ### RO-002 — Conventional Commits
 Todos los mensajes de commit siguen el formato **Conventional Commits** (`feat:`, `fix:`,
 `docs:`, `test:`, `chore:`, etc.), ver `docs/git-workflow.md` del bootcamp.
@@ -119,6 +131,14 @@ ejemplo no sensibles (ya presente en `be/` y `fe/`).
 Las contraseñas (hasheadas o en texto plano) nunca aparecen en respuestas de la API, logs del
 servidor ni mensajes de error al cliente.
 
+### RS-004 — Autorización por propiedad
+El backend verifica la propiedad del parqueadero y el alcance del rol en cada endpoint. La
+protección visual de una ruta en el frontend no se considera autorización suficiente.
+
+### RS-005 — Preparación de producción
+La URL pública requiere HTTPS, CORS limitado a orígenes aprobados, variables de entorno reales
+fuera del repositorio y migraciones ejecutadas explícitamente contra PostgreSQL de producción.
+
 ---
 
 ## 6. Pendientes explícitos (no inventados)
@@ -126,7 +146,9 @@ servidor ni mensajes de error al cliente.
 Estos puntos requieren definición del propietario del parqueadero o del instructor antes del
 Sprint correspondiente — se dejan aquí para no inventar una respuesta:
 
-- **RN-010 (RF-005)**: unidad exacta de cobro (por hora completa, por fracción, por minuto).
-- Horario formal de operación del parqueadero (RNF-002.3 lo referencia, pero el informe de
-  diseño no especifica un horario concreto).
-- Estructura societaria/roles adicionales más allá de administrador y operario, si los hubiera.
+- Regla de redondeo y minutos de gracia del cobro. HU-21/HU-22 ya fijan tarifa por minuto y tope
+  diario, pero no definen esos detalles.
+- Objetivo mensual de disponibilidad, ventana de mantenimiento y tiempos de recuperación del
+  servicio público (RNF-002.7).
+- Periodos de retención y proceso de eliminación o anonimización de datos personales (RNF-007.4).
+- Alcance legal/tributario del comprobante y factura, antes de implementar una factura real.
