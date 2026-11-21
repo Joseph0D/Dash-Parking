@@ -30,7 +30,7 @@ export function LandingPage() {
             <Link to="/registro" className="btn btn--primary">
               Crear cuenta
             </Link>
-            <Link to="/espacios" className="btn btn--ghost" style={{ color: "#fff", borderColor: "#475569" }}>
+            <Link to="/disponibilidad" className="btn btn--ghost" style={{ color: "#fff", borderColor: "#475569" }}>
               Ver disponibilidad
             </Link>
           </div>

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { addMinutes, nextFullHour, nowInColombia, toApiDateTime, validateWindow } from "../timeWindow";
+import {
+  addMinutes,
+  formatDateTime,
+  formatDuration,
+  nextFullHour,
+  nowInColombia,
+  toApiDateTime,
+  validateWindow,
+} from "../timeWindow";
 
 // 2026-11-09 15:20 UTC == 2026-11-09 10:20 en Colombia (UTC-5)
 const NOW = new Date("2026-11-09T15:20:00Z");
@@ -52,5 +60,24 @@ describe("validateWindow", () => {
   it("rejects a start in the past but tolerates a few minutes", () => {
     expect(validateWindow("2026-11-09T09:00", "2026-11-09T10:00", NOW)).toMatch(/pasado/);
     expect(validateWindow("2026-11-09T10:17", "2026-11-09T11:00", NOW)).toBeNull();
+  });
+});
+
+describe("formatDuration", () => {
+  it("formats minutes, hours and days", () => {
+    expect(formatDuration("2026-11-09T10:00", "2026-11-09T10:45")).toBe("45 min");
+    expect(formatDuration("2026-11-09T10:00:00", "2026-11-09T11:00:00")).toBe("1 h");
+    expect(formatDuration("2026-11-09T10:00", "2026-11-09T11:30")).toBe("1 h 30 min");
+    expect(formatDuration("2026-11-09T10:00", "2026-11-10T12:00")).toBe("1 d 2 h");
+  });
+
+  it("returns a dash for an invalid range", () => {
+    expect(formatDuration("2026-11-09T11:00", "2026-11-09T10:00")).toBe("—");
+  });
+});
+
+describe("formatDateTime", () => {
+  it("shows the wall-clock hour without converting time zones", () => {
+    expect(formatDateTime("2026-11-09T10:00:00")).toMatch(/10:00/);
   });
 });

@@ -14,10 +14,14 @@ import type {
   AvailabilityResponse,
   ParkingLot,
   ParkingVehicleType,
+  Space,
   SpaceStatus,
   SpacesResponse,
 } from "../api/types";
+import { MyReservations } from "../components/booking/MyReservations";
+import { ReservationModal } from "../components/booking/ReservationModal";
 import { Card } from "../components/ui/Card";
+import { useAccount } from "../context/AccountContext";
 import { addMinutes, nextFullHour, toApiDateTime, validateWindow } from "../utils/timeWindow";
 import { formatCurrency } from "../utils/formatCurrency";
 import "./SpotsPage.css";
@@ -47,6 +51,10 @@ export function AvailabilityPage() {
   const [spaces, setSpaces] = useState<SpacesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedSpace, setSelectedSpace] = useState<Space | null>(null);
+  // Se incrementa para volver a consultar la disponibilidad (después de reservar o de un cruce).
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { account, logout } = useAccount();
 
   const windowError = validateWindow(start, end);
   const selectedLot = lots.find((lot) => lot.id === lotId) ?? null;
@@ -107,7 +115,7 @@ export function AvailabilityPage() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [lotId, vehicleTypeId, start, end, windowError]);
+  }, [lotId, vehicleTypeId, start, end, windowError, refreshKey]);
 
   const selectedType = vehicleTypes.find((type) => type.id === vehicleTypeId) ?? null;
   const visibleError = windowError ?? error;
@@ -115,9 +123,23 @@ export function AvailabilityPage() {
   return (
     <section className="espacios-section">
       <div className="section-header">
-        <h2>Disponibilidad por horario</h2>
-        <p>Elige el parqueadero y la franja: un espacio solo está ocupado en el horario reservado</p>
+        <h2>Reserva tu espacio</h2>
+        <p>
+          Elige el parqueadero y la franja, y toca un espacio libre para reservarlo: solo queda
+          ocupado en el horario que elijas
+        </p>
       </div>
+
+      {account && (
+        <div className="session-bar">
+          <span>
+            Sesión de reservas: {account.first_name} {account.last_name}
+          </span>
+          <button type="button" className="booking-link" onClick={logout}>
+            Salir
+          </button>
+        </div>
+      )}
 
       <Card className="availability-controls">
         <div className="availability-field">
@@ -255,18 +277,52 @@ export function AvailabilityPage() {
           </div>
 
           <div className="spots-grid">
-            {spaces.spaces.map((space) => (
-              <div
-                key={space.id}
-                className={`spot-cell spot-cell--${space.status}`}
-                title={`${space.code} · ${STATUS_LABEL[space.status]}`}
-              >
-                {space.code}
-                <span className="spot-zone">{STATUS_LABEL[space.status]}</span>
-              </div>
-            ))}
+            {spaces.spaces.map((space) =>
+              space.status === "available" ? (
+                <button
+                  key={space.id}
+                  type="button"
+                  className="spot-cell spot-cell--available spot-cell--pick"
+                  title={`Reservar ${space.code}`}
+                  onClick={() => setSelectedSpace(space)}
+                >
+                  {space.code}
+                  <span className="spot-zone">{STATUS_LABEL[space.status]}</span>
+                </button>
+              ) : (
+                <div
+                  key={space.id}
+                  className={`spot-cell spot-cell--${space.status}`}
+                  title={`${space.code} · ${STATUS_LABEL[space.status]}`}
+                >
+                  {space.code}
+                  <span className="spot-zone">{STATUS_LABEL[space.status]}</span>
+                </div>
+              ),
+            )}
           </div>
         </>
+      )}
+
+      {selectedSpace && selectedLot && selectedType && spaces && (
+        <ReservationModal
+          lot={selectedLot}
+          space={selectedSpace}
+          vehicleType={selectedType}
+          start={start}
+          end={end}
+          estimatedPrice={spaces.estimated_price}
+          onClose={() => setSelectedSpace(null)}
+          onConflict={() => setRefreshKey((key) => key + 1)}
+          onBooked={() => {
+            setSelectedSpace(null);
+            setRefreshKey((key) => key + 1);
+          }}
+        />
+      )}
+
+      {account && (
+        <MyReservations refreshKey={refreshKey} onChanged={() => setRefreshKey((key) => key + 1)} />
       )}
     </section>
   );

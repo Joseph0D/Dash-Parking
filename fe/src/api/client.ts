@@ -34,16 +34,17 @@ interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   auth?: boolean; // por defecto true: casi todo endpoint requiere sesión
+  // Token explícito. Lo usan los módulos de la base nueva (api/accounts.ts), cuya sesión es
+  // independiente de la anterior; si se envía, reemplaza al token guardado en `dash_parking_token`.
+  token?: string | null;
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = true } = options;
+  const { method = "GET", body, auth = true, token } = options;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (auth) {
-    const token = getToken();
-    if (token) headers.Authorization = `Bearer ${token}`;
-  }
+  const bearer = token !== undefined ? token : auth ? getToken() : null;
+  if (bearer) headers.Authorization = `Bearer ${bearer}`;
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
