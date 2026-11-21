@@ -33,7 +33,8 @@ services:
 
   backend:
     build:
-      context: ./be
+      context: .
+      dockerfile: be/Dockerfile
     container_name: dash-parking-backend
     restart: unless-stopped
     env_file:

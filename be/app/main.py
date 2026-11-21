@@ -1,15 +1,16 @@
 """
 Módulo: main.py
 Qué: Punto de entrada de la API de Dash Parking.
-Para qué: Registra todos los routers del sistema y prepara la base de datos al arrancar.
+Para qué: Registra los routers y crea el esquema solo en desarrollo; producción migra antes
+         de iniciar el servidor.
 Impacto: Es el proceso que expone toda la funcionalidad — auth, vehículos, sesiones, reservas,
          pagos y reportes.
 
-Nota de alcance (MVP académico): las tablas se crean con `Base.metadata.create_all()` al iniciar,
-en vez de usar migraciones con Alembic. Es una simplificación deliberada para que el equipo pueda
-levantar el proyecto con `docker compose up` sin pasos adicionales; migrar a Alembic es la mejora
-natural una vez el esquema se estabilice (no cambia ningún contrato de la API).
+En desarrollo las tablas se crean automáticamente para facilitar `docker compose up`. En
+producción, el contenedor aplica primero las migraciones versionadas y el servicio no modifica el
+esquema al arrancar.
 """
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -46,6 +47,9 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup() -> None:
+    if settings.app_env.casefold() == "production":
+        settings.validate_production_config()
+        return
     Base.metadata.create_all(bind=engine)
 
 

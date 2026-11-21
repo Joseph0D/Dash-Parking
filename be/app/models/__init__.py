@@ -1,9 +1,10 @@
 """
 Módulo: models/__init__.py
 Qué: Reexporta todos los modelos ORM para que SQLAlchemy los registre contra `Base.metadata`.
-Para qué: `Base.metadata.create_all()` (ver app/main.py) solo crea las tablas de los modelos
-          que hayan sido importados al menos una vez en el proceso.
+Para qué: Registra todas las entidades para las pruebas y la creación automática del esquema
+          exclusivamente en desarrollo.
 """
+
 from app.models.parking_lot import ParkingLot  # noqa: F401
 from app.models.parking_lot_member import ParkingLotMember  # noqa: F401
 from app.models.parking_lot_schedule import ParkingLotSchedule  # noqa: F401

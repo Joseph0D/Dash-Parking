@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from pydantic import SecretStr
 from sqlalchemy import select
@@ -13,6 +14,7 @@ from app.services import password_reset_service
 
 
 def _enable_test_smtp(monkeypatch):
+    monkeypatch.setattr(settings, "email_provider", "smtp")
     monkeypatch.setattr(settings, "smtp_host", "smtp.example.test")
     monkeypatch.setattr(settings, "smtp_port", 587)
     monkeypatch.setattr(settings, "smtp_username", "test-user")
@@ -63,12 +65,17 @@ def test_reset_request_is_generic_rate_limited_and_stores_only_token_hash(
     active_tokens = [token for token in tokens if token.used_at is None]
     assert len(tokens) == 3
     assert len(active_tokens) == 1
-    assert active_tokens[0].expires_at - active_tokens[0].created_at == timedelta(minutes=30)
+    assert active_tokens[0].expires_at - active_tokens[0].created_at == timedelta(
+        minutes=30
+    )
     assert all(len(token.token_hash) == 64 for token in tokens)
     assert all(token.token_hash != raw for token in tokens for _, raw in sent_emails)
     attempts = db_session.execute(select(PasswordResetAttempt)).scalars().all()
     assert len(attempts) == 4
-    assert all(len(attempt.email_hash) == 64 and len(attempt.ip_hash) == 64 for attempt in attempts)
+    assert all(
+        len(attempt.email_hash) == 64 and len(attempt.ip_hash) == 64
+        for attempt in attempts
+    )
 
 
 def test_password_reset_token_is_one_time_and_changes_login_password(
@@ -155,9 +162,10 @@ def test_expired_password_reset_token_is_rejected(client, db_session, monkeypatc
     assert response.json()["detail"] == "El enlace no es válido o ya venció"
 
 
-def test_reset_request_is_unavailable_for_all_emails_without_smtp(
+def test_reset_request_is_unavailable_for_all_emails_without_configured_provider(
     client, monkeypatch
 ):
+    monkeypatch.setattr(settings, "email_provider", "smtp")
     monkeypatch.setattr(settings, "smtp_host", None)
     monkeypatch.setattr(settings, "smtp_username", None)
     monkeypatch.setattr(settings, "smtp_password", None)
@@ -220,11 +228,85 @@ def test_smtp_sender_uses_tls_and_builds_frontend_reset_link(monkeypatch):
             sent.append(message)
 
     fake_server = FakeSMTP()
-    monkeypatch.setattr(email_service.smtplib, "SMTP", lambda *_args, **_kwargs: fake_server)
+    monkeypatch.setattr(
+        email_service.smtplib, "SMTP", lambda *_args, **_kwargs: fake_server
+    )
 
     email_service.send_password_reset_email("user@example.test", "abc/def-token")
 
     assert fake_server.tls_context is not None
     assert fake_server.credentials == ("test-user", "not-a-real-password")
     assert sent[0]["To"] == "user@example.test"
-    assert "https://parking.example.test/restablecer-contrasena?token=abc%2Fdef-token" in sent[0].get_content()
+    assert (
+        "https://parking.example.test/restablecer-contrasena?token=abc%2Fdef-token"
+        in sent[0].get_content()
+    )
+
+
+def test_brevo_sender_uses_https_api_and_builds_frontend_reset_link(monkeypatch):
+    monkeypatch.setattr(settings, "email_provider", "brevo")
+    monkeypatch.setattr(settings, "brevo_api_key", SecretStr("test-api-key"))
+    monkeypatch.setattr(settings, "email_from_email", "no-reply@example.test")
+    monkeypatch.setattr(settings, "email_from_name", "Dash Parking")
+    monkeypatch.setattr(settings, "frontend_base_url", "https://parking.example.test")
+    sent_requests = []
+
+    class FakeResponse:
+        status = 201
+        headers = {}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    def fake_urlopen(request, *, timeout):
+        sent_requests.append((request, timeout))
+        return FakeResponse()
+
+    monkeypatch.setattr(email_service, "urlopen", fake_urlopen)
+
+    email_service.send_password_reset_email("user@example.test", "abc/def-token")
+
+    request, timeout = sent_requests[0]
+    payload = json.loads(request.data)
+    assert request.full_url == email_service.BREVO_EMAIL_API_URL
+    assert dict(request.header_items())["Api-key"] == "test-api-key"
+    assert timeout == settings.email_timeout_seconds
+    assert payload["sender"] == {
+        "name": "Dash Parking",
+        "email": "no-reply@example.test",
+    }
+    assert payload["to"] == [{"email": "user@example.test"}]
+    assert (
+        "https://parking.example.test/restablecer-contrasena?token=abc%2Fdef-token"
+        in payload["textContent"]
+    )
+
+
+def test_brevo_sender_logs_http_failure_without_exposing_provider_response(
+    monkeypatch, caplog
+):
+    monkeypatch.setattr(settings, "email_provider", "brevo")
+    monkeypatch.setattr(settings, "brevo_api_key", SecretStr("test-api-key"))
+    monkeypatch.setattr(settings, "email_from_email", "no-reply@example.test")
+
+    class FakeResponse:
+        status = 401
+        headers = {}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    monkeypatch.setattr(
+        email_service, "urlopen", lambda *_args, **_kwargs: FakeResponse()
+    )
+
+    email_service.send_password_reset_email("user@example.test", "test-token")
+
+    assert "HTTP 401" in caplog.text
+    assert "test-api-key" not in caplog.text

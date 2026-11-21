@@ -8,6 +8,7 @@
 
 | Archivo | Para qué |
 |---|---|
+| `migrations/000_uuid_initial_schema.sql` | Esquema inicial versionado para una base UUID nueva |
 | `migrations/001_fix_missing_fields_and_integration.sql` | Campos vacíos/faltantes + roles, comprobante, pago de reservas |
 | `migrations/002_time_based_reservations.sql` | Reservas por franja horaria (requiere la 001) |
 | `migrations/003_bogota_parking_map.sql` | Ubicaciones demo de Bogotá, coordenadas y espacios/tarifas para disponibilidad |
@@ -18,6 +19,26 @@
 | `tests/time_based_reservations_test.sql` | Pruebas (corren en una transacción y hacen `ROLLBACK`) |
 | `tests/uuid_reservation_constraints_test.sql` | Prueba transaccional de las restricciones de reservas UUID |
 | `dash_parking_complete.sql` | Estado final listo para una base nueva (dump original + 001 + 002) |
+
+## Despliegue de demostración
+
+La configuración preparada usa Vercel para el frontend, Render Free para la API y Neon Free
+para PostgreSQL. Es una demo pública, no un servicio con disponibilidad garantizada: Render puede
+dormir la API tras inactividad y Neon Free tiene límites y no ofrece SLA. Render Free bloquea SMTP
+saliente, por lo que la recuperación de contraseña usa la API HTTPS de Brevo en ese entorno.
+Neon incluye `btree_gist`, requerido por la migración 005.
+
+El contenedor de producción ejecuta `python -m app.scripts.migrate_production` antes de iniciar
+Uvicorn. El runner registra cada archivo en `dash_parking_schema_migrations`, toma un advisory lock
+de PostgreSQL y aplica, en orden, `000`, `004`, `005` y `006`. Las migraciones `001`–`003` son de
+la base legada `dash_parking_v2` y no se ejecutan contra la base UUID de producción. En una base
+existente sin registro de migraciones, el runner detecta el esquema base y no vuelve a crear sus
+tablas; un esquema parcial detiene el despliegue para evitar una inicialización ambigua.
+
+`Base.metadata.create_all()` permanece únicamente para desarrollo y pruebas. El seed del
+administrador y los datos de ejemplo está bloqueado cuando `APP_ENV=production`. Consulta
+[`docs/despliegue-publico.md`](../docs/despliegue-publico.md) para crear servicios y configurar
+variables sin incluir secretos en el repositorio.
 
 ## Opción A — con Docker Compose (automático)
 
@@ -91,8 +112,10 @@ docker exec dash-parking-db psql -U dash_parking -d dash_parking -v ON_ERROR_STO
 
 Los tokens se guardan como SHA-256, vencen a los 30 minutos y las solicitudes excedentes reciben
 la misma respuesta genérica que las solicitudes aceptadas (máximo 3 por correo y 10 por IP en una
-hora). Si SMTP no está configurado, el endpoint responde `503` de forma consistente para todas las
-direcciones; no se revela si una cuenta existe.
+hora). El proveedor se selecciona con `EMAIL_PROVIDER`: `smtp` para el entorno local y `brevo`
+para despliegues gratuitos que bloquean SMTP saliente. Si el proveedor seleccionado no está
+configurado, el endpoint responde `503` de forma consistente para todas las direcciones; no se
+revela si una cuenta existe.
 
 Los horarios semanales se interpretan con `day_of_week` de lunes (0) a domingo (6), en hora de
 Bogotá. Para reservar se requiere una fila para cada día; un día cerrado debe registrarse

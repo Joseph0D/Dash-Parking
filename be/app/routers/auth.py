@@ -3,6 +3,7 @@ Router: auth.py
 Qué: Endpoints de registro, inicio de sesión y recuperación de contraseña.
 Para qué: Punto de entrada de autenticación para toda la plataforma.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
@@ -41,12 +42,18 @@ class ProfileUpdateRequest(BaseModel):
     email: str
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenResponse:
     """Autoregistro limitado a cliente o dueño; los roles privilegiados no son asignables aquí."""
-    existing = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+    existing = db.execute(
+        select(User).where(User.email == payload.email)
+    ).scalar_one_or_none()
     if existing is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya está registrado")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya está registrado"
+        )
 
     user = User(
         name=payload.name,
@@ -79,9 +86,13 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenRe
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     """Inicio de sesión (RF-012). Mensaje de error genérico (RN-020)."""
-    generic_error = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
+    generic_error = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas"
+    )
 
-    user = db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none()
+    user = db.execute(
+        select(User).where(User.email == payload.email)
+    ).scalar_one_or_none()
     if user is None or not verify_password(payload.password, user.password_hash):
         raise generic_error
 
@@ -100,7 +111,7 @@ def request_password_reset(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> PasswordResetRequestResponse:
-    if not settings.smtp_configured:
+    if not settings.email_configured:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="La recuperación de contraseña no está disponible temporalmente",
@@ -153,7 +164,9 @@ def update_profile(
         select(User).where(User.email == payload.email, User.id != current_user.id)
     ).scalar_one_or_none()
     if existing is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya está registrado")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya está registrado"
+        )
 
     current_user.name = payload.name
     current_user.surname = payload.surname

@@ -7,7 +7,7 @@
 | **ID** | RNF-008 |
 | **Categoría** | Operación, disponibilidad y despliegue |
 | **Prioridad** | Alta |
-| **Estado** | Pendiente; corresponde a la fase de despliegue |
+| **Estado** | Preparación técnica lista; publicación y operación real pendientes |
 
 ## Requisitos
 
@@ -31,3 +31,11 @@ alertas para fallos de base de datos, correo y disponibilidad.
 ### RNF-008.5 — Operación y restauración
 Antes de publicar la URL se documentan el responsable operativo, las copias de seguridad, la
 retención, la restauración de prueba, los dominios y el origen CORS del frontend.
+
+## Limitación de la configuración de demostración
+
+La ruta Vercel Hobby + Render Free + Neon Free permite validar una URL pública sin costo, pero no
+cumple una promesa de disponibilidad continua: Render suspende servicios gratuitos inactivos y
+Neon Free no ofrece SLA. La recuperación de contraseña usa la API HTTPS de Brevo porque Render
+Free bloquea SMTP saliente. Para operación de producción se requiere seleccionar planes pagos,
+definir copias automáticas y probar la restauración antes de aceptar datos de usuarios reales.
