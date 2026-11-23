@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models.enums import ReservationStatus, SessionStatus, SpotStatus
@@ -62,7 +62,7 @@ def register_entry(db: Session, vehicle: Vehicle) -> ParkingSession:
             Reservation.vehicle_id == vehicle.id,
             Reservation.status == ReservationStatus.CONFIRMED,
             Reservation.start_time <= now,
-            Reservation.end_time >= now,
+            Reservation.end_time > now,
         )
     ).scalar_one_or_none()
 
@@ -70,11 +70,36 @@ def register_entry(db: Session, vehicle: Vehicle) -> ParkingSession:
         spot = db.get(ParkingSpot, reservation.spot_id)
         reservation.status = ReservationStatus.COMPLETED
     else:
+        reservation_in_window = (
+            select(Reservation.id)
+            .where(
+                Reservation.spot_id == ParkingSpot.id,
+                Reservation.status == ReservationStatus.CONFIRMED,
+                Reservation.start_time <= now,
+                Reservation.end_time > now,
+            )
+            .exists()
+        )
+        session_in_progress = (
+            select(ParkingSession.id)
+            .where(
+                ParkingSession.spot_id == ParkingSpot.id,
+                ParkingSession.status == SessionStatus.ACTIVE,
+                or_(ParkingSession.exit_time.is_(None), ParkingSession.exit_time > now),
+            )
+            .exists()
+        )
         spot = db.execute(
-            select(ParkingSpot).where(
+            select(ParkingSpot)
+            .where(
                 ParkingSpot.vehicle_type == vehicle.vehicle_type,
                 ParkingSpot.status == SpotStatus.AVAILABLE,
+                ParkingSpot.is_active.is_(True),
+                ~reservation_in_window,
+                ~session_in_progress,
             )
+            .order_by(ParkingSpot.code)
+            .with_for_update(skip_locked=True)
         ).scalars().first()
 
     if spot is None:

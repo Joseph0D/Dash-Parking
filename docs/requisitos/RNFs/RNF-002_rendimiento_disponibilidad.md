@@ -16,7 +16,7 @@
 | **Nombre**    | Rendimiento y disponibilidad            |
 | **Categoría** | Rendimiento                              |
 | **Prioridad** | Alta                                      |
-| **Estado**    | Planificado (evaluado en Sprint 7 — Pruebas) |
+| **Estado**    | Parcial; los objetivos de producción y el SLO están pendientes |
 
 ---
 
@@ -36,3 +36,17 @@ por el propietario.
 
 ### RNF-002.4 — Bajo tiempo de espera percibido
 Toda operación que tarde más de 300 ms debe mostrar un indicador de carga en el frontend.
+
+### RNF-002.5 — Frescura de disponibilidad
+El resumen del mapa se actualiza al menos cada cinco segundos y la consulta detallada se puede
+actualizar manualmente. El resultado de una reserva siempre se valida nuevamente en el backend;
+la frecuencia de refresco del navegador no garantiza ni sustituye un cupo.
+
+### RNF-002.6 — Reservas concurrentes
+La base de datos impide confirmar dos reservas solapadas para el mismo espacio o vehículo, incluso
+si las solicitudes llegan simultáneamente. El conflicto se comunica sin dejar una reserva parcial.
+
+### RNF-002.7 — Objetivo de disponibilidad pública
+Antes de habilitar el servicio público, el responsable debe acordar y medir un objetivo de
+disponibilidad mensual, la ventana de mantenimiento y los tiempos de recuperación. No se asigna
+un porcentaje como compromiso contractual hasta que se apruebe.

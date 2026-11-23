@@ -14,6 +14,7 @@ class ParkingSpotResponse(BaseModel):
     zone: str
     vehicle_type: VehicleType
     status: SpotStatus
+    is_active: bool
 
     model_config = {"from_attributes": True}
 

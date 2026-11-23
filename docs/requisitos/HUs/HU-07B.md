@@ -1,10 +1,10 @@
 # HU-07B – Actualización y desactivación de parqueaderos
 
-**Módulo:** parqueaderos · **Rol:** administrador
+**Módulo:** parqueaderos · **Rol:** dueño (administrador de plataforma para soporte)
 
 ## Historia de usuario
 
-> Como administrador, quiero actualizar y desactivar parqueaderos, para mantener sus datos al día y retirarlos de la plataforma cuando ya no operen.
+> Como dueño, quiero actualizar y desactivar mis parqueaderos, para mantener sus datos al día y retirarlos cuando ya no operen.
 
 ## Criterios de aceptación
 
@@ -14,6 +14,7 @@
 - [ ] No puedo desactivar un parqueadero con reservas o tickets activos; se muestra el motivo.
 - [ ] Un parqueadero desactivado no aparece en la búsqueda ni permite nuevas reservas.
 - [ ] Puedo reactivar un parqueadero desactivado.
+- [ ] No puedo modificar ni desactivar parqueaderos de otro dueño.
 
 ## Dependencias
 
@@ -25,4 +26,5 @@ Definir si la identificación es editable.
 
 ## Cambio respecto a la historia original
 
-Nueva: sale de dividir la HU-07. Se define qué pasa con las reservas activas al desactivar.
+Se limita toda lectura y escritura a parqueaderos propios; la validación se realiza en el
+backend, incluso si se altera el identificador enviado por el cliente.

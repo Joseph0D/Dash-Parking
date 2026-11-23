@@ -5,10 +5,16 @@ export const VEHICLE_TYPE_LABEL: Record<VehicleType, string> = {
   car: "Carro",
   motorcycle: "Moto",
   bicycle: "Bicicleta",
+  electric_motorcycle: "Moto eléctrica",
+  scooter: "Patineta",
+  truck: "Camión",
 };
 
 export const VEHICLE_TYPE_ICON: Record<VehicleType, string> = {
   car: "🚗",
   motorcycle: "🏍️",
   bicycle: "🚲",
+  electric_motorcycle: "🛵",
+  scooter: "🛴",
+  truck: "🚚",
 };

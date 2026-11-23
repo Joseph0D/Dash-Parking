@@ -31,10 +31,18 @@ class Vehicle(Base):
     __table_args__ = (UniqueConstraint("plate", name="uq_vehicles_plate"),)
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
-    plate: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    plate: Mapped[str | None] = mapped_column(String(10), nullable=True, index=True)
     vehicle_type: Mapped[VehicleType] = mapped_column(Enum(VehicleType, name="vehicle_type"), nullable=False)
+    vehicle_category_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID(),
+        ForeignKey("vehicle_categories.id", name="fk_vehicles_vehicle_category"),
+        nullable=True,
+    )
+    brand: Mapped[str | None] = mapped_column(String(120), nullable=True)
     model: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    color: Mapped[str | None] = mapped_column(String(60), nullable=True)
     owner_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     owner: Mapped["User"] = relationship(back_populates="vehicles")  # noqa: F821
+    vehicle_category: Mapped["VehicleCategory | None"] = relationship()  # noqa: F821

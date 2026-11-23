@@ -1,42 +1,57 @@
-# RF-013 — Reserva de espacio con tiempo de ocupación
+# RF-013 — Reserva de espacio por parqueadero y rango horario
 
 ## Identificación
+
 | Campo | Valor |
 |---|---|
-| **ID** | RF-013 · **Módulo** | Reservas · **Estado** | Implementado |
-| **HU asociada** | HU-013 |
+| **ID** | RF-013 |
+| **Módulo** | Reservas |
+| **HUs asociadas** | HU-13, HU-14 (criterio fusionado), HU-15A, HU-15B, HU-16, HU-17 |
+| **Estado** | Implementado para disponibilidad, reserva y cancelación; vencimiento automático pendiente |
 
 ## Descripción
-Permite a un cliente reservar un espacio de un tipo/zona determinado, para una fecha/hora de
-llegada y una duración estimada. El espacio queda bloqueado para otras reservas en ese rango.
+
+Un cliente reserva un espacio compatible en un parqueadero para un intervalo. El backend asigna
+un espacio libre y la base de datos impide el doble uso simultáneo. La disponibilidad se calcula
+por fecha y rango: una reserva no ocupa el espacio fuera de su intervalo.
 
 ## Entradas
+
 | Campo | Tipo | Obligatorio | Validaciones |
 |---|---|---|---|
-| `vehicle_id` | UUID | Sí | Debe pertenecer al usuario autenticado |
-| `vehicle_type` | Enum | Sí | `car`, `motorcycle`, `bicycle` |
-| `start_time` | Fecha/hora | Sí | Debe ser futura |
-| `duration_hours` | Decimal | Sí | Mayor a 0, máximo 24 |
+| `parking_lot_id` | UUID | Sí | Parqueadero activo y con horario configurado |
+| `vehicle_id` | UUID | Sí | Pertenece al usuario autenticado |
+| `start_time` | Fecha/hora | Sí | Se interpreta en hora de Bogotá; debe ser futura |
+| `end_time` | Fecha/hora | Sí | Posterior al inicio y dentro del horario aplicable |
 
 ## Proceso
-1. Se valida que el vehículo pertenezca al cliente.
-2. Se calcula `end_time = start_time + duration_hours`.
-3. Se busca un espacio del tipo solicitado sin reservas/sesiones que se solapen con ese rango.
-4. Si existe, se crea la reserva en estado `confirmed`. Si no, se rechaza.
 
-## Salidas
-| Escenario | HTTP | Respuesta |
-|---|---|---|
-| Reserva confirmada | 201 | Reserva creada con espacio asignado |
-| Sin disponibilidad en ese rango | 422 | Mensaje de no disponibilidad |
-
-## Endpoints asociados
-| Método | Ruta | Auth | Descripción |
-|---|---|---|---|
-| POST | `/api/v1/reservations` | Sí (client) | Crea una reserva |
-| DELETE | `/api/v1/reservations/{id}` | Sí (dueño o admin) | Cancela una reserva |
-| GET | `/api/v1/reservations/me` | Sí (client) | Lista mis reservas |
+1. Se comprueba que el vehículo pertenezca al cliente y que su categoría sea admitida.
+2. Se valida parqueadero, horario, tipo de espacio e intervalo.
+3. En una transacción se selecciona un espacio compatible y se crea la reserva confirmada.
+4. La restricción PostgreSQL de intervalos evita solapamientos por espacio y vehículo incluso
+   ante solicitudes concurrentes.
+5. La cancelación autorizada marca la reserva cancelada; el cupo vuelve a estar disponible solo
+   durante ese intervalo, sin alterar la disponibilidad de otras fechas.
 
 ## Reglas de negocio
-- RN-022: No pueden solaparse dos reservas confirmadas para el mismo espacio.
-- RN-023: Al registrar el ingreso con una placa que tiene reserva vigente, la sesión se vincula a la reserva y no se cobra la reserva por separado.
+
+- Los rangos se tratan como `[inicio, fin)`, por lo que dos reservas consecutivas pueden compartir
+  el límite entre sus horarios.
+- No existe un tope de 24 horas; prevalecen los horarios y reglas del parqueadero.
+- Un parqueadero sin horario semanal completo no admite nuevas reservas.
+- El dueño de un vehículo solo consulta/cancela sus reservas; el administrador consulta el alcance
+  autorizado.
+- El vencimiento automático y su tolerancia deben implementarse antes de aceptar HU-17.
+
+## Endpoints y trazabilidad
+
+- `POST /api/v1/reservations`, `GET /api/v1/reservations/me` y
+  `DELETE /api/v1/reservations/{reservation_id}`.
+- Backend: `be/app/routers/reservations.py`,
+  `be/app/services/reservation_service.py`.
+- Persistencia: `db/migrations/005_uuid_reservation_constraints.sql`.
+- Frontend: `fe/src/pages/AvailabilityPage.tsx`,
+  `fe/src/pages/client/ReservationsPanel.tsx`.
+- Pruebas: `be/tests/test_reservations.py`,
+  `be/tests/test_reservation_concurrency.py`.

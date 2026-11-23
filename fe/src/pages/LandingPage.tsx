@@ -6,6 +6,7 @@ import type { Rate } from "../api/types";
 import { VEHICLE_TYPE_ICON, VEHICLE_TYPE_LABEL } from "../hooks/useVehicleLabels";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Card } from "../components/ui/Card";
+import { ParkingMap } from "../components/ParkingMap";
 import "./LandingPage.css";
 
 export function LandingPage() {
@@ -36,6 +37,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <ParkingMap />
 
       <section className="features-section">
         <Card className="feature-card">

@@ -12,11 +12,15 @@ class VehicleType(str, Enum):
     CAR = "car"
     MOTORCYCLE = "motorcycle"
     BICYCLE = "bicycle"
+    ELECTRIC_MOTORCYCLE = "electric_motorcycle"
+    SCOOTER = "scooter"
+    TRUCK = "truck"
 
 
 class UserRole(str, Enum):
     CLIENT = "client"
     OPERATOR = "operator"
+    OWNER = "owner"
     ADMIN = "admin"
 
 

@@ -16,16 +16,16 @@
 | **Nombre**    | Cálculo de tiempo de permanencia y valor a pagar      |
 | **Módulo**    | Salida                                                |
 | **Prioridad** | Alta                                                   |
-| **Estado**    | Implementado |
+| **Estado**    | Parcial; validar la fórmula por minuto y el tope diario contra la implementación |
 | **Informe original** | RF08, RF09                                      |
 
 ---
 
 ## Descripción
 
-Al registrarse la salida (RF-004), el sistema debe calcular el tiempo de permanencia (diferencia
-entre hora de salida y hora de ingreso) y el valor a pagar, aplicando la tarifa vigente para el
-tipo de vehículo (RF-007).
+Al registrarse la salida (RF-004), el sistema calcula el tiempo de permanencia y el valor a pagar
+con la tarifa vigente del parqueadero y tipo de vehículo (RF-007), usando tarifa por minuto y
+tope diario.
 
 ---
 
@@ -35,7 +35,7 @@ tipo de vehículo (RF-007).
 | ------------- | -------- | ----------- | -------------------------------------- |
 | `entry_time`  | Fecha/hora | Sí        | Debe existir (viene del registro de ingreso) |
 | `exit_time`   | Fecha/hora | Sí        | Debe ser posterior a `entry_time`      |
-| Tarifa vigente | Decimal | Sí          | Debe existir una tarifa activa para el tipo de vehículo |
+| Tarifa vigente | Decimal | Sí          | Debe existir para el parqueadero y tipo de vehículo |
 
 ---
 
@@ -43,8 +43,9 @@ tipo de vehículo (RF-007).
 
 1. Se obtiene `entry_time` y `exit_time` del vehículo.
 2. Se calcula el tiempo de permanencia.
-3. Se obtiene la tarifa vigente para el tipo de vehículo (RF-007).
-4. Se calcula el valor a pagar = tiempo de permanencia × tarifa.
+3. Se obtiene la tarifa vigente para el parqueadero y tipo de vehículo (RF-007).
+4. Se calcula el valor usando el número de minutos y la tarifa por minuto, con el tope diario
+   configurado para el parqueadero.
 5. Se retorna el resultado antes de confirmar el pago (RF-006).
 
 ---
@@ -67,4 +68,5 @@ El cálculo se ejecuta como parte de `POST /api/v1/vehicles/{plate}/exit` (RF-00
 ## Reglas de negocio
 
 - RN-009: El valor a pagar siempre usa la tarifa vigente al momento de la salida, no la vigente al momento del ingreso.
-- RN-010: El cálculo nunca se redondea a favor ni en contra sin una regla explícita definida por el negocio (pendiente de definir unidad de cobro: por hora, fracción, etc. — **Pendiente de aclarar con el propietario del parqueadero**).
+- RN-010: La tarifa por minuto y el tope diario quedan definidos en HU-21/HU-22; el redondeo de
+  fracciones de minuto y los minutos de gracia siguen pendientes de aprobación del responsable.

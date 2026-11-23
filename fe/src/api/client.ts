@@ -8,7 +8,17 @@
  *          que devuelve el backend (ver be/app/routers/*.py).
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const API_BASE_URL =
+  configuredApiBaseUrl || (import.meta.env.DEV ? "http://localhost:8000" : undefined);
+
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL debe configurarse antes de compilar el frontend.");
+}
+
+if (!import.meta.env.DEV && !API_BASE_URL.startsWith("https://")) {
+  throw new Error("VITE_API_BASE_URL debe usar HTTPS fuera del entorno local.");
+}
 
 export class ApiError extends Error {
   status: number;

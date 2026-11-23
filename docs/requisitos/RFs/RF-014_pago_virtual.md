@@ -4,7 +4,7 @@
 | Campo | Valor |
 |---|---|
 | **ID** | RF-014 · **Módulo** | Pagos · **Estado** | Implementado (pasarela simulada) |
-| **HU asociada** | HU-014 |
+| **HUs asociadas** | HU-23, HU-23A, HU-23B, HU-23C, HU-25 |
 
 ## Descripción
 Procesa el pago de una sesión activa mediante un método "virtual" (equivalente a Nequi/PSE/tarjeta).

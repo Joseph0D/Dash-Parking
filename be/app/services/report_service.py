@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import date, datetime, time, timezone
 from decimal import Decimal
 
-from sqlalchemy import Date, cast, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.enums import PaymentStatus, VehicleType
@@ -60,7 +60,11 @@ def build_dashboard(
     ]
 
     daily_query = (
-        select(cast(Payment.created_at, Date).label("day"), func.sum(Payment.amount), func.count(Payment.id))
+        select(
+            func.date(Payment.created_at).label("day"),
+            func.sum(Payment.amount),
+            func.count(Payment.id),
+        )
         .join(ParkingSession, ParkingSession.id == Payment.session_id)
         .join(Vehicle, Vehicle.id == ParkingSession.vehicle_id)
         .where(Payment.status == PaymentStatus.PAID)

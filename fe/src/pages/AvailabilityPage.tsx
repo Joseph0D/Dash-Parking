@@ -1,15 +1,14 @@
 /**
  * AvailabilityPage.tsx
  * Qué: el cliente elige parqueadero, tipo de vehículo y franja horaria, y ve qué espacios están
- *      libres SOLO en esa franja (un espacio reservado de 10:00 a 11:00 sigue libre a las 9:00).
- * Para qué: saber si hay cupo antes de llegar. Consulta pública y de solo lectura; reservar
- *           exige sesión y llega en un paso posterior.
- * Impacto: la disponibilidad la calcula PostgreSQL (db/migrations/002_*.sql); esta pantalla solo
- *          la muestra. Si pide datos con una franja inválida, la API responde 422.
+ *      libres SOLO en esa franja, y reservar eligiendo uno de sus vehículos.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import * as availabilityApi from "../api/availability";
 import { getErrorMessage } from "../api/errors";
+import * as reservationsApi from "../api/reservations";
+import * as vehiclesApi from "../api/vehicles";
 import type {
   AvailabilityResponse,
   ParkingLot,
@@ -17,11 +16,14 @@ import type {
   Space,
   SpaceStatus,
   SpacesResponse,
+  Vehicle,
 } from "../api/types";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { MyReservations } from "../components/booking/MyReservations";
 import { ReservationModal } from "../components/booking/ReservationModal";
-import { Card } from "../components/ui/Card";
-import { useAccount } from "../context/AccountContext";
 import { addMinutes, nextFullHour, toApiDateTime, validateWindow } from "../utils/timeWindow";
 import { formatCurrency } from "../utils/formatCurrency";
 import "./SpotsPage.css";
@@ -38,49 +40,102 @@ const DURATION_PRESETS = [
   { label: "1 hora", minutes: 60 },
   { label: "2 horas", minutes: 120 },
   { label: "4 horas", minutes: 240 },
+  { label: "24 horas", minutes: 1440 },
+  { label: "48 horas", minutes: 2880 },
 ];
 
 export function AvailabilityPage() {
+  const [searchParams] = useSearchParams();
+  const requestedLotId = searchParams.get("parkingLotId");
+  const { user, loading: authLoading, logout } = useAuth();
+  const toast = useToast();
   const [lots, setLots] = useState<ParkingLot[]>([]);
-  const [lotId, setLotId] = useState<number | null>(null);
+  const [lotId, setLotId] = useState<string | null>(null);
   const [vehicleTypes, setVehicleTypes] = useState<ParkingVehicleType[]>([]);
-  const [vehicleTypeId, setVehicleTypeId] = useState<number | null>(null);
+  const [vehicleTypeId, setVehicleTypeId] = useState<string | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicleId, setVehicleId] = useState("");
   const [start, setStart] = useState(() => nextFullHour());
   const [end, setEnd] = useState(() => addMinutes(nextFullHour(), 60));
   const [zones, setZones] = useState<AvailabilityResponse | null>(null);
   const [spaces, setSpaces] = useState<SpacesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [booking, setBooking] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState<Space | null>(null);
-  // Se incrementa para volver a consultar la disponibilidad (después de reservar o de un cruce).
   const [refreshKey, setRefreshKey] = useState(0);
-  const { account, logout } = useAccount();
-
+  const hasLoadedAvailability = useRef(false);
+  // Se incrementa para volver a consultar la disponibilidad (después de reservar o de un cruce).
   const windowError = validateWindow(start, end);
   const selectedLot = lots.find((lot) => lot.id === lotId) ?? null;
 
-  // 1) Parqueaderos disponibles. Hoy hay uno solo y queda preseleccionado.
   useEffect(() => {
+    const timer = window.setInterval(() => setRefreshKey((key) => key + 1), 5_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // 1) Parqueaderos activos; el de la URL queda preseleccionado si sigue disponible.
+  useEffect(() => {
+    let cancelled = false;
     availabilityApi
       .listParkingLots()
       .then((list) => {
+        if (cancelled) return;
         setLots(list);
-        setLotId(list[0]?.id ?? null);
+        setLotId(
+          requestedLotId && list.some((lot) => lot.id === requestedLotId)
+            ? requestedLotId
+            : list[0]?.id ?? null,
+        );
       })
-      .catch((err) => setError(getErrorMessage(err)));
-  }, []);
+      .catch((err) => {
+        if (!cancelled) setError(getErrorMessage(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [requestedLotId]);
 
   // 2) Tipos de vehículo (con precio por hora) del parqueadero elegido.
   useEffect(() => {
+    setVehicleTypes([]);
+    setVehicleTypeId(null);
     if (lotId === null) return;
+    let cancelled = false;
     availabilityApi
       .listVehicleTypes(lotId)
       .then((types) => {
+        if (cancelled) return;
         setVehicleTypes(types);
         setVehicleTypeId(types[0]?.id ?? null);
       })
-      .catch((err) => setError(getErrorMessage(err)));
+      .catch((err) => {
+        if (!cancelled) setError(getErrorMessage(err));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [lotId]);
+
+  useEffect(() => {
+    if (!user) {
+      setVehicles([]);
+      setVehicleId("");
+      return;
+    }
+    let cancelled = false;
+    vehiclesApi
+      .listMyVehicles()
+      .then((list) => {
+        if (!cancelled) setVehicles(list);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(getErrorMessage(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // 3) Disponibilidad de la franja. `cancelled` descarta respuestas viejas si el cliente sigue
   //    cambiando la hora, y el retardo evita una petición por cada tecla.
@@ -92,7 +147,7 @@ export function AvailabilityPage() {
     }
     let cancelled = false;
     const timer = setTimeout(async () => {
-      setLoading(true);
+      if (!hasLoadedAvailability.current) setLoading(true);
       setError(null);
       try {
         const [zoneData, spaceData] = await Promise.all([
@@ -102,6 +157,7 @@ export function AvailabilityPage() {
         if (cancelled) return;
         setZones(zoneData);
         setSpaces(spaceData);
+        hasLoadedAvailability.current = true;
       } catch (err) {
         if (cancelled) return;
         setZones(null);
@@ -118,7 +174,36 @@ export function AvailabilityPage() {
   }, [lotId, vehicleTypeId, start, end, windowError, refreshKey]);
 
   const selectedType = vehicleTypes.find((type) => type.id === vehicleTypeId) ?? null;
+  const compatibleVehicles = vehicles.filter(
+    (vehicle) => vehicle.vehicle_type === selectedType?.code,
+  );
+  const selectedVehicle = compatibleVehicles.find((vehicle) => vehicle.id === vehicleId) ?? null;
   const visibleError = windowError ?? error;
+
+  useEffect(() => {
+    if (!compatibleVehicles.some((vehicle) => vehicle.id === vehicleId)) {
+      setVehicleId(compatibleVehicles[0]?.id ?? "");
+    }
+  }, [vehicleId, compatibleVehicles]);
+
+  async function handleReservation() {
+    if (!selectedLot || !selectedType || !selectedVehicle || !spaces?.available_count) return;
+    setBooking(true);
+    try {
+      await reservationsApi.createReservation(
+        selectedLot.id,
+        selectedVehicle.id,
+        toApiDateTime(start),
+        toApiDateTime(end),
+      );
+      toast.success("Reserva confirmada");
+      setRefreshKey((key) => key + 1);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setBooking(false);
+    }
+  }
 
   return (
     <section className="espacios-section">
@@ -126,14 +211,14 @@ export function AvailabilityPage() {
         <h2>Reserva tu espacio</h2>
         <p>
           Elige el parqueadero y la franja, y toca un espacio libre para reservarlo: solo queda
-          ocupado en el horario que elijas
+          ocupado en el horario que elijas. La disponibilidad se actualiza cada 5 segundos.
         </p>
       </div>
 
-      {account && (
+      {user && (
         <div className="session-bar">
           <span>
-            Sesión de reservas: {account.first_name} {account.last_name}
+            Sesión de reservas: {user.name} {user.surname}
           </span>
           <button type="button" className="booking-link" onClick={logout}>
             Salir
@@ -145,7 +230,13 @@ export function AvailabilityPage() {
         <div className="availability-field">
           <span className="availability-label">Parqueadero</span>
           {lots.length > 1 ? (
-            <select value={lotId ?? ""} onChange={(e) => setLotId(Number(e.target.value))}>
+            <select
+              value={lotId ?? ""}
+              onChange={(e) => {
+                setLotId(e.target.value || null);
+                setVehicleTypeId(null);
+              }}
+            >
               {lots.map((lot) => (
                 <option key={lot.id} value={lot.id}>
                   {lot.name}
@@ -219,6 +310,13 @@ export function AvailabilityPage() {
           </div>
         </div>
       </Card>
+
+      {selectedLot && !selectedLot.schedule_configured && (
+        <p className="availability-error" role="status">
+          Este parqueadero todavía no tiene horario semanal configurado. Puedes consultar sus
+          espacios, pero aún no admite reservas.
+        </p>
+      )}
 
       {visibleError && (
         <p className="availability-error" role="alert">
@@ -301,6 +399,48 @@ export function AvailabilityPage() {
               ),
             )}
           </div>
+
+          <Card className="availability-booking">
+            <h3>Reservar este horario</h3>
+            {authLoading ? (
+              <p>Comprobando la sesión...</p>
+            ) : !user ? (
+              <p>
+                <Link to="/login">Inicia sesión</Link> para reservar.
+              </p>
+            ) : compatibleVehicles.length === 0 ? (
+              <p>
+                No tienes un vehículo de este tipo registrado. Agrégalo en{" "}
+                <Link to="/cuenta">Mi cuenta</Link>.
+              </p>
+            ) : (
+              <div className="availability-booking-row">
+                <label className="form-field">
+                  <span>Vehículo</span>
+                  <select value={vehicleId} onChange={(event) => setVehicleId(event.target.value)}>
+                    {compatibleVehicles.map((vehicle) => (
+                      <option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.plate ?? vehicle.model ?? vehicle.vehicle_type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Button
+                  type="button"
+                  loading={booking}
+                  disabled={
+                    authLoading ||
+                    selectedLot?.schedule_configured !== true ||
+                    spaces.available_count === 0 ||
+                    !selectedVehicle
+                  }
+                  onClick={handleReservation}
+                >
+                  Reservar espacio
+                </Button>
+              </div>
+            )}
+          </Card>
         </>
       )}
 
@@ -321,7 +461,7 @@ export function AvailabilityPage() {
         />
       )}
 
-      {account && (
+      {user && (
         <MyReservations refreshKey={refreshKey} onChanged={() => setRefreshKey((key) => key + 1)} />
       )}
     </section>

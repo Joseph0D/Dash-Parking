@@ -1,0 +1,162 @@
+.parking-map-section {
+  max-width: 1180px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+.parking-map-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.parking-map-heading h2 {
+  margin: 0.3rem 0;
+  color: var(--color-text-strong);
+}
+
+.parking-map-heading p,
+.parking-map-details p {
+  color: var(--color-text-muted);
+}
+
+.parking-map-eyebrow {
+  color: var(--color-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.parking-map-live {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.parking-map-live small {
+  margin-left: 0.35rem;
+}
+
+.parking-map-live-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 4px #16a34a22;
+}
+
+.parking-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.8fr);
+  gap: 1rem;
+}
+
+.parking-map-frame {
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 32px #0f172a14;
+}
+
+.parking-map {
+  height: 430px;
+  width: 100%;
+  z-index: 0;
+}
+
+.parking-map-marker {
+  background: transparent;
+  border: 0;
+}
+
+.parking-map-marker span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 0;
+  background: #0e7490;
+  box-shadow: 0 3px 12px #0f172a55;
+  color: #fff;
+  transform: rotate(-45deg);
+}
+
+.parking-map-marker b {
+  font-size: 0.82rem;
+  font-weight: 800;
+  transform: rotate(45deg);
+}
+
+.parking-map-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.parking-map-details h3,
+.parking-map-details p {
+  margin: 0;
+}
+
+.parking-map-capacity {
+  display: flex;
+  flex-direction: column;
+  margin: 0.4rem 0;
+}
+
+.parking-map-capacity strong {
+  color: var(--color-success);
+  font-size: 2rem;
+}
+
+.parking-map-capacity span,
+.parking-map-breakdown {
+  color: var(--color-text-muted);
+  font-size: 0.87rem;
+}
+
+.parking-map-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.parking-map-details .btn {
+  margin-top: auto;
+  text-align: center;
+}
+
+.parking-map-demo-note {
+  margin-top: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 760px) {
+  .parking-map-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .parking-map-live {
+    flex-wrap: wrap;
+  }
+
+  .parking-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .parking-map-frame,
+  .parking-map {
+    min-height: 360px;
+    height: 360px;
+  }
+}

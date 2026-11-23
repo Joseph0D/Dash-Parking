@@ -16,7 +16,7 @@
 | **Nombre**    | Integridad y confiabilidad         |
 | **Categoría** | Calidad del dato                    |
 | **Prioridad** | Alta                                 |
-| **Estado**    | Planificado (Sprint 1 — Dominio y persistencia) |
+| **Estado**    | Parcial; restricciones de reserva y migraciones existen, restauración pendiente de prueba |
 
 ---
 
@@ -36,3 +36,16 @@ relevante para la trazabilidad vive solo en memoria una vez pasado el Sprint 1.
 Ante un error durante una operación (ej. falla al liberar espacio tras registrar salida), el
 sistema no debe dejar datos a medio actualizar — las operaciones que afectan más de una entidad
 se ejecutan de forma transaccional.
+
+### RNF-004.5 — Integridad temporal de reservas
+Los rangos se interpretan como `[inicio, fin)`, se convierten de la hora de Bogotá a UTC para
+persistencia y no se solapan para un mismo espacio o vehículo. Cancelar libera únicamente el
+rango de esa reserva y conserva su historial.
+
+### RNF-004.6 — Consumo único de tokens
+Un token de recuperación solo puede cambiar la contraseña una vez. Los tokens vencidos,
+inexistentes o consumidos se rechazan con una respuesta uniforme.
+
+### RNF-004.7 — Recuperación de la base de datos
+Las copias de seguridad de producción deben tener una restauración de prueba documentada antes
+de declarar disponible el servicio público.
