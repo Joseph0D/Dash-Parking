@@ -1,6 +1,6 @@
 /*
-  index.css — reset y estilos base globales de Dash Parking.
-  El reset (*, body) viene 1:1 del index.css del mockup entregado por el cliente.
+  index.css — reset y estilos base globales de Dash Parking (tema oscuro).
+  Tipografía: Barlow para texto y Barlow Condensed para títulos y cifras.
 */
 * {
   margin: 0;
@@ -9,13 +9,45 @@
   font-family: var(--font-base);
 }
 
+html {
+  scroll-behavior: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1.1;
+}
+
+a {
+  color: var(--color-accent);
 }
 
 button {
   font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
 }
 
 .page-loading {
@@ -33,6 +65,7 @@ button {
   border-radius: var(--radius-md);
 }
 
+/* Formularios: campos oscuros con borde sutil */
 .form-field {
   margin-bottom: 1rem;
   display: flex;
@@ -42,21 +75,52 @@ button {
 
 .form-field label {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
   color: var(--color-text);
+  background: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-subtle);
 }
 
 .form-field input,
 .form-field select {
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
 }
 
-.form-field input:focus,
-.form-field select:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: 2px solid var(--color-accent);
   outline-offset: 1px;
   border-color: var(--color-accent);
+}
+
+/* Los selectores y calendarios nativos respetan el tema oscuro */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+/* Tablas genéricas */
+table {
+  border-collapse: collapse;
+}
+
+/* Barras de desplazamiento discretas */
+* {
+  scrollbar-color: var(--color-border-strong) transparent;
 }

@@ -1,36 +1,122 @@
-.admin-dashboard {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
+/* Panel con menú lateral (misma estructura que PanelLayout de la plantilla) */
+.dash-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: calc(100vh - 57px);
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
-.admin-dashboard h1 {
-  color: var(--color-text-strong);
-  margin-bottom: 1.2rem;
+.dash-side {
+  position: sticky;
+  top: 57px;
+  align-self: start;
+  height: calc(100vh - 57px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
 }
 
+.dash-side__role {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.dash-side__name {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.dash-side .tabs {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  margin: 0;
+  border: 0;
+}
+
+.dash-side .tab-btn {
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.dash-side .tab-btn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dash-side .tab-btn.active {
+  color: var(--color-text);
+  background: var(--color-accent-soft);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.dash-main {
+  min-width: 0;
+  padding: 1.5rem clamp(1rem, 3vw, 2rem) 3rem;
+}
+
+.dash-main h1 {
+  font-size: 2.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.dash-main > p.welcome {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 820px) {
+  .dash-shell {
+    grid-template-columns: 1fr;
+  }
+  .dash-side {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .dash-side .tabs {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+/* Cifras y tablas del panel de administración */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
 .stat-card {
-  text-align: center;
+  text-align: left;
 }
 
 .stat-card .stat-value {
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: var(--color-accent-strong);
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .stat-card .stat-label {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .filters-bar {
@@ -49,14 +135,16 @@
 .breakdown-table th,
 .breakdown-table td {
   text-align: left;
-  padding: 0.6rem 0.5rem;
+  padding: 0.65rem 0.9rem;
   border-bottom: 1px solid var(--color-border);
-  font-size: 0.9rem;
 }
 
 .breakdown-table th {
   color: var(--color-text-muted);
   font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.breakdown-table tr:last-child td {
+  border-bottom: 0;
 }
