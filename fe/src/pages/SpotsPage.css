@@ -10,8 +10,8 @@
 }
 
 .section-header h2 {
-  font-size: 1.8rem;
-  color: var(--color-text-strong);
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  color: var(--color-text);
 }
 
 .section-header p {
@@ -27,21 +27,21 @@
 }
 
 .filter-btn {
-  background-color: #ffffff;
-  border: 1px solid var(--color-border-strong);
-  padding: 0.5rem 1.1rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 0.45rem 1.1rem;
   border-radius: var(--radius-pill);
-  color: var(--color-navy-700);
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .filter-btn:hover,
 .filter-btn.active {
-  background-color: var(--color-navy-800);
+  background-color: var(--color-accent-soft);
   color: var(--color-accent);
-  border-color: var(--color-navy-800);
+  border-color: var(--color-accent);
 }
 
 .leyenda {
@@ -84,9 +84,11 @@
 }
 
 .summary-stat .value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--color-text-strong);
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .summary-stat .label {
@@ -105,26 +107,28 @@
   border-radius: var(--radius-sm);
   padding: 0.8rem 0.5rem;
   text-align: center;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
   font-size: 0.9rem;
   border: 2px solid transparent;
 }
 
 .spot-cell--available {
   background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--color-success-strong);
   border-color: var(--color-success-border);
 }
 
 .spot-cell--occupied {
   background: var(--color-danger-soft);
-  color: var(--color-danger);
+  color: var(--color-danger-strong);
   border-color: var(--color-danger-border);
 }
 
 .spot-cell--reserved {
   background: var(--color-warning-soft);
-  color: var(--color-warning);
+  color: var(--color-warning-strong);
   border-color: var(--color-warning-border);
 }
 

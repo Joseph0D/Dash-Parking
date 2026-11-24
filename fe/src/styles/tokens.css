@@ -1,58 +1,63 @@
 /*
-  tokens.css — Sistema de diseño de Dash Parking
-  Qué: variables CSS extraídas 1:1 de la interfaz base entregada por el cliente
-       (proyecto-dash-parking: index.css, css/usuario.css, css/admin.css, css/apartados.css).
-  Para qué: mantener la identidad visual ya aprobada (navy + celeste + semáforo de estados)
-       como fuente única de verdad, en vez de repetir hex codes por componente.
-  No se reinterpreta la paleta — se preserva tal cual el cliente la definió.
+  tokens.css — Sistema de diseño de Dash Parking (tema oscuro).
+  Se conservan los NOMBRES de las variables del diseño anterior para que ningún componente
+  tenga que cambiar: lo que cambia es su valor. Paleta y tipografía vienen de la nueva plantilla
+  (fondo #0b0f14, paneles #161d28, acento cian #22d3ee, Barlow / Barlow Condensed).
 */
 
 :root {
+  color-scheme: dark;
+
   /* Superficie y texto */
-  --color-bg: #f4f6f9;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8fafc;
-  --color-surface-muted: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  --color-bg: #0b0f14;
+  --color-surface: #161d28;
+  --color-surface-alt: #111823;
+  --color-surface-muted: #1c2535;
+  --color-input: #0f141b;
+  --color-border: #2b3546;
+  --color-border-strong: #3a4659;
 
-  --color-text: #1e293b;
-  --color-text-strong: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-subtle: #94a3b8;
+  --color-text: #e8eef6;
+  --color-text-strong: #ffffff;
+  --color-text-muted: #9aa8bb;
+  --color-text-subtle: #6b7a90;
 
-  /* Marca: navy oscuro + celeste acento */
-  --color-navy-900: #0f172a;
-  --color-navy-800: #1e293b;
-  --color-navy-700: #334155;
-  --color-accent: #38bdf8;
-  --color-accent-strong: #0284c7;
-  --color-accent-stronger: #0369a1;
-  --color-accent-soft: #e0f2fe;
+  /* Marca: cian sobre fondo oscuro */
+  --color-navy-900: #0b0f14;
+  --color-navy-800: #161d28;
+  --color-navy-700: #2b3546;
+  --color-accent: #22d3ee;
+  --color-accent-strong: #22d3ee;
+  --color-accent-stronger: #67e8f9;
+  --color-accent-soft: rgba(34, 211, 238, 0.12);
+  --color-on-accent: #04222a;
 
-  /* Semáforo de estado de espacios (RF-002/RF-003) */
-  --color-success: #16a34a;
-  --color-success-strong: #059669;
-  --color-success-soft: #f0fdf4;
-  --color-success-border: #bbf7d0;
+  /* Semáforo de estado de espacios (mismos colores del plano de la plantilla) */
+  --color-success: #22c55e;
+  --color-success-strong: #4ade80;
+  --color-success-soft: rgba(34, 197, 94, 0.14);
+  --color-success-border: rgba(34, 197, 94, 0.4);
 
-  --color-danger: #dc2626;
-  --color-danger-strong: #be123c;
-  --color-danger-soft: #fef2f2;
-  --color-danger-border: #fecaca;
+  --color-danger: #ef4444;
+  --color-danger-strong: #f87171;
+  --color-danger-soft: rgba(239, 68, 68, 0.14);
+  --color-danger-border: rgba(239, 68, 68, 0.45);
 
-  --color-warning: #d97706;
-  --color-warning-strong: #eab308;
-  --color-warning-soft: #fffbeb;
-  --color-warning-border: #fef3c7;
+  --color-warning: #facc15;
+  --color-warning-strong: #fde68a;
+  --color-warning-soft: rgba(250, 204, 21, 0.14);
+  --color-warning-border: rgba(250, 204, 21, 0.4);
 
   /* Tipografía */
-  --font-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-base: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
 
   /* Espaciado y forma */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-pill: 20px;
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  --dash-line: 3px dashed rgba(232, 238, 246, 0.16); /* línea de pintura de parqueadero */
 }

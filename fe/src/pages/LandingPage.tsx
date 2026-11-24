@@ -9,6 +9,34 @@ import { Card } from "../components/ui/Card";
 import { ParkingMap } from "../components/ParkingMap";
 import "./LandingPage.css";
 
+/** Ilustración decorativa del hero: un plano de espacios visto en perspectiva (sin datos reales). */
+const PLAN_STATES = ["free", "busy", "free", "free", "held", "free", "busy", "free", "free", "busy", "free", "held",
+  "free", "free", "busy", "free", "held", "free", "free", "busy", "free", "free", "free", "busy"];
+
+function HeroPlan() {
+  return (
+    <div className="hero-plan" aria-hidden="true">
+      <div className="hero-plan__tilt">
+        <svg viewBox="0 0 480 300" role="presentation">
+          {PLAN_STATES.map((state, i) => {
+            const row = Math.floor(i / 12);
+            const col = i % 12;
+            const x = 24 + col * 37;
+            const y = row === 0 ? 28 : 196;
+            return (
+              <g key={i}>
+                <rect className={`hero-plan__bay hero-plan__bay--${state}`} x={x} y={y} width="30" height="76" rx="4" />
+                <rect className={`hero-plan__car hero-plan__car--${state}`} x={x + 6} y={y + 12} width="18" height="48" rx="6" />
+              </g>
+            );
+          })}
+          <line className="hero-plan__lane" x1="16" y1="150" x2="464" y2="150" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export function LandingPage() {
   const [rates, setRates] = useState<Rate[]>([]);
 
@@ -31,11 +59,12 @@ export function LandingPage() {
             <Link to="/registro" className="btn btn--primary">
               Crear cuenta
             </Link>
-            <Link to="/disponibilidad" className="btn btn--ghost" style={{ color: "#fff", borderColor: "#475569" }}>
+            <Link to="/disponibilidad" className="btn btn--ghost">
               Ver disponibilidad
             </Link>
           </div>
         </div>
+        <HeroPlan />
       </section>
 
       <ParkingMap />
@@ -61,7 +90,7 @@ export function LandingPage() {
           <div className="rates-grid">
             {rates.map((rate) => (
               <Card key={rate.id} className="rate-card">
-                <div style={{ fontSize: "1.8rem" }}>{VEHICLE_TYPE_ICON[rate.vehicle_type]}</div>
+                <div className="rate-icon">{VEHICLE_TYPE_ICON[rate.vehicle_type]}</div>
                 <div className="rate-value">{formatCurrency(Number(rate.price_per_hour))}</div>
                 <div className="rate-label">{VEHICLE_TYPE_LABEL[rate.vehicle_type]} / hora</div>
               </Card>
