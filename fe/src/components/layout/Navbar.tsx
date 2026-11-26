@@ -1,11 +1,18 @@
 /** Navbar.tsx — adaptado 1:1 de index.html (.navbar/.brand/.nav-links del mockup). */
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+  const isRolePanel = ["/cuenta", "/admin", "/owner"].some(
+    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+  );
+
+  if (user && isRolePanel) return null;
 
   function handleLogout() {
     logout();
@@ -13,17 +20,24 @@ export function Navbar() {
   }
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar${isHome ? " navbar--home" : ""}`}>
       <Link to="/" className="brand">
         Dash<span>Parking</span>
       </Link>
       <ul className="nav-links">
-        <li>
-          <Link to="/disponibilidad">Reservar</Link>
-        </li>
-        <li>
-          <Link to="/dueno">Panel dueño</Link>
-        </li>
+        {isHome ? (
+          <>
+            <li><a href="#parqueaderos">Parqueaderos</a></li>
+            <li><a href="#reservas">Reservas</a></li>
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="#manual">Guía</a></li>
+          </>
+        ) : (
+          <>
+            <li><Link to="/disponibilidad">Reservar</Link></li>
+            {!user && <li><Link to="/registro?tipo=dueno">Soy dueño</Link></li>}
+          </>
+        )}
         <li>
           {/* Abre la hoja de soporte (manual de usuario y técnico) en una pestaña nueva
               para no sacar al usuario de su sesión. Archivo: fe/public/soporte/ */}

@@ -28,6 +28,31 @@ export class ApiError extends Error {
   }
 }
 
+function formatApiErrorDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail.flatMap((item: unknown) => {
+      if (
+        typeof item !== "object"
+        || item === null
+        || !("msg" in item)
+        || typeof item.msg !== "string"
+      ) {
+        return [];
+      }
+      const location = "loc" in item && Array.isArray(item.loc)
+        ? item.loc
+          .filter((part: unknown): part is string => typeof part === "string")
+          .filter((part: string) => part !== "body")
+          .join(". ")
+        : "";
+      return [location ? `${location}: ${item.msg}` : item.msg];
+    });
+    if (messages.length > 0) return messages.join("; ");
+  }
+  return "Ocurrió un error inesperado. Intenta de nuevo.";
+}
+
 function getToken(): string | null {
   return localStorage.getItem("dash_parking_token");
 }
@@ -66,10 +91,13 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     return undefined as T;
   }
 
-  const data = await response.json().catch(() => null);
+  const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const message = data?.detail ?? "Ocurrió un error inesperado. Intenta de nuevo.";
+    const detail = data && typeof data === "object" && "detail" in data
+      ? data.detail
+      : null;
+    const message = formatApiErrorDetail(detail);
     throw new ApiError(response.status, message);
   }
 

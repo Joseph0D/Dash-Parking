@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
@@ -443,7 +444,19 @@ function NewParkingLotForm({
           </div>
           <Button type="button" variant="ghost" onClick={onCancel}>Volver</Button>
         </div>
+        <ol className="owner-hint">
+          <li>Completa el nombre y la identificación del parqueadero.</li>
+          <li>Busca la dirección o marca su ubicación en el mapa.</li>
+          <li>Abre los días de atención y define el horario.</li>
+          <li>Asigna espacios y tarifas por tipo de vehículo.</li>
+        </ol>
         {error && <p className="owner-error" role="alert">{error}</p>}
+        {categories.length === 0 && (
+          <p className="owner-error" role="alert">
+            No hay categorías de vehículos configuradas. No se pueden crear espacios hasta que
+            administración inicialice el catálogo.
+          </p>
+        )}
         <div className="owner-fields-grid">
           <label>
             Nombre
@@ -465,14 +478,23 @@ function NewParkingLotForm({
         />
         <section>
           <h3>Horario semanal</h3>
-          <p className="owner-hint">Indica cada día abierto, cerrado o de atención 24 horas.</p>
+          <p className="owner-hint">
+            Cada día inicia como cerrado. Desmarca los días de atención y elige su horario o activa
+            la opción de 24 horas.
+          </p>
           <ScheduleEditor schedules={schedules} onChange={setSchedules} />
         </section>
         <section>
           <h3>Espacios y tarifas por tipo</h3>
+          <p className="owner-hint">
+            Define cuántos espacios tendrá cada categoría y su tarifa. Esto crea los espacios del
+            parqueadero; no necesitas registrar aquí los carros de tus clientes.
+          </p>
           <InventoryEditor items={inventory} onChange={setInventory} />
         </section>
-        <Button type="submit" loading={saving}>Crear parqueadero</Button>
+        <Button type="submit" loading={saving} disabled={categories.length === 0}>
+          Crear parqueadero
+        </Button>
       </form>
     </Card>
   );
@@ -617,11 +639,12 @@ function ExistingParkingLotForm({
 }
 
 export function OwnerDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [lots, setLots] = useState<OwnerParkingLot[]>([]);
   const [categories, setCategories] = useState<VehicleCategory[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dashboard, setDashboard] = useState<OwnerParkingLotDashboard | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
+  const showCreate = searchParams.get("crear") === "1";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -668,8 +691,13 @@ export function OwnerDashboard() {
   function addLot(created: OwnerParkingLot) {
     setLots((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
     setSelectedId(created.id);
-    setShowCreate(false);
+    setSearchParams({}, { replace: true });
     setError(null);
+  }
+
+  function setCreateMode(enabled: boolean) {
+    setSearchParams(enabled ? { crear: "1" } : {}, { replace: true });
+    if (enabled) setError(null);
   }
 
   if (loading) return <div className="owner-page-loading">Cargando tus parqueaderos…</div>;
@@ -682,7 +710,7 @@ export function OwnerDashboard() {
           <h1>Mis parqueaderos</h1>
           <p>Configura ubicaciones, horarios, espacios y tarifas de forma independiente.</p>
         </div>
-        <Button onClick={() => { setShowCreate(true); setError(null); }}>
+        <Button onClick={() => setCreateMode(true)}>
           Crear parqueadero
         </Button>
       </header>
@@ -691,7 +719,7 @@ export function OwnerDashboard() {
         <NewParkingLotForm
           categories={categories}
           onCreated={addLot}
-          onCancel={() => setShowCreate(false)}
+          onCancel={() => setCreateMode(false)}
         />
       ) : (
         <div className="owner-dashboard-grid">
@@ -699,7 +727,7 @@ export function OwnerDashboard() {
             {lots.length === 0 ? (
               <Card>
                 <p>Aún no has creado parqueaderos.</p>
-                <Button onClick={() => setShowCreate(true)}>Crear el primero</Button>
+                <Button onClick={() => setCreateMode(true)}>Crear el primero</Button>
               </Card>
             ) : lots.map((lot) => (
               <button

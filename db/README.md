@@ -15,6 +15,7 @@
 | `migrations/004_uuid_parking_schema.sql` | Esquema de parqueaderos, roles, horarios, categorías y tarifas en la base UUID |
 | `migrations/005_uuid_reservation_constraints.sql` | No-solapamiento por espacio y vehículo para reservas UUID |
 | `migrations/006_password_reset.sql` | Tokens hasheados y registro de límites de recuperación de contraseña |
+| `migrations/007_seed_vehicle_categories.sql` | Categorías iniciales necesarias para crear inventario de parqueaderos |
 | `be/app/scripts/migrate_parking_catalog.py` | Simulación/importación idempotente del catálogo v2 a la base UUID |
 | `tests/time_based_reservations_test.sql` | Pruebas (corren en una transacción y hacen `ROLLBACK`) |
 | `tests/uuid_reservation_constraints_test.sql` | Prueba transaccional de las restricciones de reservas UUID |
@@ -30,8 +31,8 @@ Neon incluye `btree_gist`, requerido por la migración 005.
 
 El contenedor de producción ejecuta `python -m app.scripts.migrate_production` antes de iniciar
 Uvicorn. El runner registra cada archivo en `dash_parking_schema_migrations`, toma un advisory lock
-de PostgreSQL y aplica, en orden, `000`, `004`, `005` y `006`. Las migraciones `001`–`003` son de
-la base legada `dash_parking_v2` y no se ejecutan contra la base UUID de producción. En una base
+de PostgreSQL y aplica, en orden, `000`, `004`, `005`, `006` y `007`. Las migraciones `001`–`003`
+son de la base legada `dash_parking_v2` y no se ejecutan contra la base UUID de producción. En una base
 existente sin registro de migraciones, el runner detecta el esquema base y no vuelve a crear sus
 tablas; un esquema parcial detiene el despliegue para evitar una inicialización ambigua.
 

@@ -58,7 +58,7 @@ def seed_lot(db_session, *, configured=True, all_day=True):
             parking_lot=lot,
             vehicle_category=category,
             price_per_minute=500,
-            valid_from=datetime.now(timezone.utc).date(),
+            valid_from=service.now_colombia().date(),
         )
     )
     db_session.commit()

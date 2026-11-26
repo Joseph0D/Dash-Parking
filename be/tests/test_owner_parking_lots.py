@@ -12,6 +12,7 @@ from app.models.reservation import Reservation
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.vehicle_category import VehicleCategory
+from app.scripts.seed import seed_vehicle_categories
 from app.services.availability_service import COLOMBIA_TZ
 
 
@@ -67,6 +68,30 @@ def _create_parking_lot(client, db_session, headers, identification: str = "NIT-
     )
     assert response.status_code == 201, response.text
     return response.json(), car
+
+
+def test_seeded_vehicle_categories_allow_owner_to_create_parking_lot(client, db_session):
+    db_session.query(VehicleCategory).delete()
+
+    seed_vehicle_categories(db_session)
+    db_session.commit()
+    seed_vehicle_categories(db_session)
+    db_session.commit()
+
+    categories = db_session.execute(select(VehicleCategory)).scalars().all()
+    assert {category.code for category in categories} == {
+        vehicle_type.value for vehicle_type in VehicleType
+    }
+
+    _, headers = _register(client, "seeded-owner@example.com")
+    response = client.get("/api/v1/owner/vehicle-categories", headers=headers)
+    assert response.status_code == 200
+    assert {category["code"] for category in response.json()} == {
+        vehicle_type.value for vehicle_type in VehicleType
+    }
+
+    lot, _ = _create_parking_lot(client, db_session, headers)
+    assert lot["total_capacity"] == 2
 
 
 def test_owner_registration_and_parking_lot_access_are_isolated(client, db_session):

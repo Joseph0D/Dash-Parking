@@ -1,6 +1,6 @@
 /** Registro de clientes y dueños; los roles de operador y administrador no se asignan aquí. */
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getErrorMessage } from "../api/errors";
 import { Button } from "../components/ui/Button";
@@ -10,6 +10,7 @@ import "./AuthPages.css";
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [documentType, setDocumentType] = useState("CC");
@@ -17,7 +18,9 @@ export function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [accountType, setAccountType] = useState<"client" | "owner">("client");
+  const [accountType, setAccountType] = useState<"client" | "owner">(
+    () => searchParams.get("tipo") === "dueno" ? "owner" : "client",
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

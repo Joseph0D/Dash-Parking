@@ -44,6 +44,8 @@ export function ParkingMap() {
   const [availability, setAvailability] = useState<Record<string, LotAvailability | null>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadingLots, setLoadingLots] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [refreshTime, setRefreshTime] = useState(() => new Date());
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
@@ -53,6 +55,8 @@ export function ParkingMap() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoadingLots(true);
+    setError(null);
     availabilityApi
       .listParkingLots()
       .then((result) => {
@@ -62,11 +66,14 @@ export function ParkingMap() {
       })
       .catch((cause) => {
         if (!cancelled) setError(getErrorMessage(cause));
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLots(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadAttempt]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setRefreshTime(new Date()), 5_000);
@@ -117,7 +124,26 @@ export function ParkingMap() {
       </div>
 
       {error && <p className="availability-error" role="alert">{error}</p>}
-      {lots.length > 0 && (
+      {lots.length === 0 ? (
+        <Card className="parking-map-details parking-map-empty">
+          <p>
+            {loadingLots
+              ? "Cargando parqueaderos..."
+              : error
+                ? "No fue posible cargar los parqueaderos."
+                : "Aún no hay parqueaderos publicados."}
+          </p>
+          {error && (
+            <button
+              className="btn btn--primary"
+              onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+              type="button"
+            >
+              Reintentar
+            </button>
+          )}
+        </Card>
+      ) : (
         <div className="parking-map-layout">
           <div className="parking-map-frame">
             <MapContainer
@@ -186,9 +212,6 @@ export function ParkingMap() {
           </Card>
         </div>
       )}
-      <p className="parking-map-demo-note">
-        Los parqueaderos marcados como “Demo” son ubicaciones de ejemplo; sus cupos se consultan en la base de disponibilidad del proyecto.
-      </p>
     </section>
   );
 }

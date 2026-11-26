@@ -16,6 +16,7 @@ MIGRATION_FILES = (
     "004_uuid_parking_schema.sql",
     "005_uuid_reservation_constraints.sql",
     "006_password_reset.sql",
+    "007_seed_vehicle_categories.sql",
 )
 MIGRATION_LOCK_ID = 815_720_241
 

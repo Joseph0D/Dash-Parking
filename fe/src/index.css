@@ -12,10 +12,37 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
+  line-height: 1.5;
 }
 
 button {
   font-family: inherit;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+input,
+select,
+textarea {
+  color: var(--color-text);
+  background-color: var(--color-surface-alt);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .page-loading {

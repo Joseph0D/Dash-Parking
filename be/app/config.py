@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 8  # 8 horas
 
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     frontend_base_url: str = "http://localhost:5173"
     email_provider: Literal["smtp", "brevo"] = "smtp"
     email_timeout_seconds: int = Field(default=10, gt=0, le=60)

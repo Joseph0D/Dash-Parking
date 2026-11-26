@@ -25,6 +25,7 @@ from app.models.enums import SpotStatus, UserRole, VehicleType
 from app.models.parking_spot import ParkingSpot
 from app.models.rate import Rate
 from app.models.user import User
+from app.models.vehicle_category import VehicleCategory
 
 DEFAULT_ADMIN_EMAIL = "admin@dashparking.dev"
 DEFAULT_ADMIN_PASSWORD = "Admin123!"
@@ -53,6 +54,15 @@ PREFIX_BY_TYPE = {
     VehicleType.BICYCLE: "C",
 }
 
+VEHICLE_CATEGORY_NAMES = {
+    VehicleType.CAR: "Carro",
+    VehicleType.MOTORCYCLE: "Moto",
+    VehicleType.BICYCLE: "Bicicleta",
+    VehicleType.ELECTRIC_MOTORCYCLE: "Moto eléctrica",
+    VehicleType.SCOOTER: "Patineta eléctrica",
+    VehicleType.TRUCK: "Camión",
+}
+
 
 def seed_admin(db: Session) -> None:
     existing = db.execute(
@@ -69,6 +79,22 @@ def seed_admin(db: Session) -> None:
     )
     db.add(admin)
     print(f"[seed] Admin creado: {DEFAULT_ADMIN_EMAIL} / {DEFAULT_ADMIN_PASSWORD}")
+
+
+def seed_vehicle_categories(db: Session) -> None:
+    for vehicle_type, name in VEHICLE_CATEGORY_NAMES.items():
+        existing = db.execute(
+            select(VehicleCategory).where(VehicleCategory.code == vehicle_type.value)
+        ).scalar_one_or_none()
+        if existing is None:
+            db.add(
+                VehicleCategory(
+                    code=vehicle_type.value,
+                    name=name,
+                    is_active=True,
+                )
+            )
+            print(f"[seed] Categoría de vehículo creada: {name}")
 
 
 def seed_rates(db: Session) -> None:
@@ -111,6 +137,7 @@ def run() -> None:
     db = SessionLocal()
     try:
         seed_admin(db)
+        seed_vehicle_categories(db)
         seed_rates(db)
         seed_spots(db)
         db.commit()
