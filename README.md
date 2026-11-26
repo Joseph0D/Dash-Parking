@@ -38,6 +38,13 @@ dashboard filtrable).
 
 Ver detalle y justificación en [`CODING_STANDARDS.md`](CODING_STANDARDS.md).
 
+## Documentación técnica
+
+- [Manual técnico (PDF)](docs/manual-tecnico.pdf)
+- [Manual técnico editable (Markdown)](docs/manual-tecnico.md)
+- [Guía de despliegue público](docs/despliegue-publico.md)
+- [Historias de usuario y requisitos](docs/requisitos/README.md)
+
 > **Nota sobre los pagos**: "pago virtual" y "pago QR" están implementados end-to-end (generan
 > referencias y códigos QR reales), pero la pasarela de pago está **simulada** — no hay
 > credenciales de una pasarela real (Wompi/PSE/Nequi) en este entorno académico. El punto de
@@ -70,15 +77,38 @@ dash-parking/
 
 ## Cómo correr el proyecto
 
-**Con Docker (recomendado)** — un solo comando levanta base de datos, backend y frontend:
+Los archivos `.env` no se guardan en Git porque pueden contener secretos. Después de clonar el
+repositorio, hay que crearlos desde las plantillas. Para que el mapa, la disponibilidad y las
+reservas funcionen localmente, deben estar activos PostgreSQL, el backend y el frontend; ejecutar
+solo Vite (`npm run dev`) no inicia la API y produce `Failed to fetch`.
 
-```bash
-cp be/.env.example be/.env
-cp fe/.env.example fe/.env
+**Windows (PowerShell) — recomendado con Docker Desktop**
+
+Desde la carpeta raíz del repositorio:
+
+```powershell
+if (-not (Test-Path be\.env)) { Copy-Item be\.env.example be\.env }
+if (-not (Test-Path fe\.env)) { Copy-Item fe\.env.example fe\.env }
 docker compose up --build
 ```
 
-**Sin Docker** (backend):
+Cuando los servicios estén listos, abre `http://localhost:5173`; la API responde en
+`http://localhost:8000` y su documentación en `http://localhost:8000/docs`. Mantén Docker Desktop
+y Compose ejecutándose mientras uses la aplicación. Para detenerlos, pulsa `Ctrl+C` en esa
+terminal.
+
+**Linux/macOS:** desde la raíz, ejecuta `cp be/.env.example be/.env` y
+`cp fe/.env.example fe/.env`; luego `docker compose up --build`.
+
+**Sin Docker:** inicia PostgreSQL, configura `DATABASE_URL` en `be/.env`, inicia el backend en una
+terminal y el frontend en otra. La dirección predeterminada de desarrollo para la API es
+`http://localhost:8000`; cambia `VITE_API_BASE_URL` en `fe/.env` solo si el backend escucha en otra
+dirección.
+
+Si aparece `Failed to fetch` y la consola muestra `ERR_CONNECTION_REFUSED` en el puerto `8000`,
+comprueba que el backend esté ejecutándose y que `http://localhost:8000/health` responda.
+
+Backend, desde `be/`:
 
 ```bash
 cd be
@@ -89,8 +119,7 @@ python -m app.scripts.seed   # crea admin, tarifas y espacios de ejemplo
 uvicorn app.main:app --reload
 ```
 
-Requiere una instancia de PostgreSQL propia — configura `DATABASE_URL` en `be/.env`.
-API en `http://localhost:8000`, documentación interactiva en `http://localhost:8000/docs`.
+Requiere una instancia de PostgreSQL propia y las bases de datos configuradas en `be/.env`.
 
 ```bash
 pytest              # tests (usan SQLite en memoria, no requieren PostgreSQL)
@@ -98,11 +127,11 @@ ruff check .         # linter
 ruff format --check .
 ```
 
-**Sin Docker** (frontend):
+Frontend, en otra terminal desde `fe/`:
 
 ```bash
 cd fe
-npm install
+npm ci
 npm run dev
 ```
 
